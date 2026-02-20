@@ -24,14 +24,27 @@ function updateLog(data) {
     jsonOutput.textContent = JSON.stringify(data, null, 2);
 }
 
-// --- API Calls ---
+function showToast(message, type = 'info') {
+    // Simple modern toast logic
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 
+// --- API Calls ---
 async function checkHealth() {
     try {
         const res = await fetch('/api/health');
         const data = await res.json();
-        document.getElementById('health-status').textContent = `Health Check: ${data.message}`;
-        document.getElementById('health-status').style.color = '#10b981';
+        const el = document.getElementById('health-status');
+        el.textContent = `Health Check: ${data.message}`;
+        el.style.color = '#10b981';
     } catch (e) {
         document.getElementById('health-status').textContent = 'Health Check: Failed to Connect';
         document.getElementById('health-status').style.color = '#ef4444';
@@ -67,7 +80,7 @@ function updateDashboard() {
 
         document.getElementById('display-name').textContent = appState.user.username;
         document.getElementById('display-email').textContent = appState.user.email;
-        document.getElementById('display-balance').textContent = `₹${parseFloat(appState.user.balance).toLocaleString()}`;
+        document.getElementById('display-balance').textContent = `₹${parseFloat(appState.user.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     } else {
         authSection.classList.remove('hidden');
         dashboardSection.classList.add('hidden');
@@ -77,24 +90,27 @@ function updateDashboard() {
 }
 
 // --- Auth Actions ---
-
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
-    const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-
-    const result = await res.json();
-    updateLog(result);
-    if (result.success) {
-        fetchProfile();
-    } else {
-        alert(result.message);
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const result = await res.json();
+        updateLog(result);
+        if (result.success) {
+            showToast('Welcome back!', 'success');
+            fetchProfile();
+        } else {
+            showToast(result.message || 'Login failed', 'error');
+        }
+    } catch (err) {
+        showToast('System Error: Could not connect to server', 'error');
     }
 });
 
@@ -107,49 +123,78 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         phone: document.getElementById('reg-phone').value
     };
 
-    const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-    });
-
-    const result = await res.json();
-    updateLog(result);
-    if (result.success) {
-        alert('Registered successfully! Now login.');
-        showTab('login');
-    } else {
-        alert(result.message);
+    try {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        });
+        const result = await res.json();
+        updateLog(result);
+        if (result.success) {
+            showToast('Account created! Please login.', 'success');
+            showTab('login');
+        } else {
+            showToast(result.message || 'Registration failed', 'error');
+        }
+    } catch (err) {
+        showToast('System Error: Could not connect to server', 'error');
     }
 });
 
-async function logout() {
-    const res = await fetch('/api/auth/logout', { method: 'POST' });
-    const result = await res.json();
-    updateLog(result);
-    appState.isLoggedIn = false;
-    updateDashboard();
-}
+document.getElementById('btn-logout').addEventListener('click', async () => {
+    try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        const result = await res.json();
+        updateLog(result);
+        appState.isLoggedIn = false;
+        showToast('Logged out successfully');
+        updateDashboard();
+    } catch (err) {
+        updateDashboard();
+    }
+});
 
-async function performTransaction(type) {
-    const amount = document.getElementById('transaction-amount').value;
-    if (!amount) return alert('Enter an amount');
+async function handleTransaction(type) {
+    const amountInput = document.getElementById('transaction-amount');
+    const amount = amountInput.value;
 
-    const res = await fetch(`/api/bank/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: parseFloat(amount) })
-    });
+    if (!amount || isNaN(amount) || amount <= 0) {
+        return showToast('Please enter a valid amount greater than 0', 'error');
+    }
 
-    const result = await res.json();
-    updateLog(result);
-    if (result.success) {
-        fetchProfile();
-        document.getElementById('transaction-amount').value = '';
-    } else {
-        alert(result.message);
+    try {
+        const btn = document.getElementById(`btn-${type}`);
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Processing...';
+
+        const res = await fetch(`/api/bank/${type}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+
+        const result = await res.json();
+        updateLog(result);
+
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (result.success) {
+            showToast(`Amount ${type === 'credit' ? 'added to' : 'deducted from'} balance!`, 'success');
+            amountInput.value = '';
+            fetchProfile();
+        } else {
+            showToast(result.message || 'Transaction failed', 'error');
+        }
+    } catch (e) {
+        showToast('Server error during transaction', 'error');
     }
 }
+
+document.getElementById('btn-credit').addEventListener('click', () => handleTransaction('credit'));
+document.getElementById('btn-debit').addEventListener('click', () => handleTransaction('debit'));
 
 // Init
 checkHealth();

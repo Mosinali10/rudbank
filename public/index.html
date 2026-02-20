@@ -47,7 +47,7 @@
                         <h2 id="display-name">Loading...</h2>
                         <p id="display-email"></p>
                     </div>
-                    <button onclick="logout()" class="btn-outline">Logout</button>
+                    <button id="btn-logout" class="btn-outline">Logout</button>
                 </div>
 
                 <div class="balance-card">
@@ -60,10 +60,10 @@
                         <h4>Quick Transaction</h4>
                         <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
                         <div class="btn-group">
-                            <button onclick="performTransaction('credit')" class="btn-success">
+                            <button id="btn-credit" class="btn-success">
                                 <span>+</span> Credit
                             </button>
-                            <button onclick="performTransaction('debit')" class="btn-danger">
+                            <button id="btn-debit" class="btn-danger">
                                 <span>-</span> Debit
                             </button>
                         </div>
