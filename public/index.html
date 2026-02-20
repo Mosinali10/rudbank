@@ -12,6 +12,8 @@
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -25,6 +27,8 @@
 
             <form id="login-form" class="auth-form">
                 <h2>Welcome Back</h2>
+                <div id="google-login-btn" class="g-btn-wrapper"></div>
+                <div class="divider"><span>OR</span></div>
                 <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
                 <input type="password" id="login-password" placeholder="Password" required
                     autocomplete="current-password">
@@ -46,8 +50,17 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon"></div>
-                <h2>Kodbank</h2>
+                <div class="brand-profile">
+                    <div id="header-user-img" class="user-avatar-premium">?</div>
+                    <div class="profile-dropdown-container">
+                        <div id="header-user-name" class="header-username">Guest</div>
+                        <div id="profile-dropdown" class="profile-dropdown hidden">
+                            <a href="#"><i data-lucide="user"></i> My Profile</a>
+                            <button id="btn-logout-dropdown" class="logout-item"><i data-lucide="log-out"></i>
+                                Logout</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
@@ -57,13 +70,6 @@
                 <a href="#"><i data-lucide="user"></i> Profile</a>
             </nav>
             <div class="sidebar-footer">
-                <div id="sidebar-user" class="sidebar-user hidden">
-                    <div class="user-avatar" id="user-initials">?</div>
-                    <div class="user-meta">
-                        <span id="sidebar-username" class="user-name">Loading...</span>
-                        <span class="user-status">Pro Member</span>
-                    </div>
-                </div>
                 <button id="btn-logout" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
             </div>
         </aside>

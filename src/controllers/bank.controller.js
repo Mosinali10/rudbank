@@ -111,7 +111,7 @@ export const getProfile = async (req, res) => {
         const { uid } = req.user;
 
         const userQuery = await pool.query(
-            "SELECT username, email, role, balance FROM koduser WHERE id = $1",
+            "SELECT username, email, role, balance, profile_image FROM koduser WHERE id = $1",
             [uid]
         );
 

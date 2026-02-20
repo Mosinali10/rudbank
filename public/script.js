@@ -4,6 +4,10 @@ const appState = {
     transactions: []
 };
 
+// --- Google Client ID ---
+// NOTE: Replace this with your actual Google Client ID from Google Cloud Console
+const GOOGLE_CLIENT_ID = "602322479541-0it27p79h5i6j606a5k881v2d81577k8.apps.googleusercontent.com";
+
 // UI Elements
 const jsonOutput = document.getElementById('json-output');
 const authSection = document.getElementById('auth-section');
@@ -60,8 +64,8 @@ async function validateSession() {
             appState.isLoggedIn = true;
             appState.user = result.data;
             updateDashboardUI();
-            fetchTransactions(); // Auto fetch transactions
-            fetchBalance();      // TASK 1: Auto fetch balance on load
+            fetchTransactions();
+            fetchBalance();
         } else {
             handleLogoutEffect();
         }
@@ -131,6 +135,7 @@ function renderTransactionsList() {
     if (window.lucide) lucide.createIcons();
 }
 
+// --- TASK 4 & 5: Dashboard Header Upgrade ---
 function updateDashboardUI() {
     authSection.classList.add('hidden');
     dashboardSection.classList.remove('hidden');
@@ -139,12 +144,18 @@ function updateDashboardUI() {
 
     document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
 
-    // Sidebar User
-    const sidebarUser = document.getElementById('sidebar-user');
-    if (sidebarUser) {
-        sidebarUser.classList.remove('hidden');
-        document.getElementById('sidebar-username').textContent = appState.user.username;
-        document.getElementById('user-initials').textContent = appState.user.username.charAt(0).toUpperCase();
+    // Header Profile Image & Name
+    const headerImg = document.getElementById('header-user-img');
+    const headerName = document.getElementById('header-user-name');
+
+    if (headerName) headerName.textContent = appState.user.username;
+
+    if (headerImg) {
+        if (appState.user.profile_image) {
+            headerImg.innerHTML = `<img src="${appState.user.profile_image}" alt="Profile">`;
+        } else {
+            headerImg.textContent = appState.user.username.charAt(0).toUpperCase();
+        }
     }
 }
 
@@ -155,6 +166,31 @@ function handleLogoutEffect() {
     dashboardSection.classList.add('hidden');
     authStatus.textContent = 'Status: Guest';
     authStatus.style.color = '#8b8ba7';
+}
+
+// --- Google Auth: Callback ---
+async function handleGoogleCallback(response) {
+    const idToken = response.credential;
+
+    try {
+        const res = await fetch('/api/auth/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+
+        const result = await res.json();
+        updateLog(result);
+
+        if (result.success) {
+            showToast(`Welcome back, ${result.data.user.username}`, 'success');
+            validateSession();
+        } else {
+            showToast(result.message || 'Google Auth Failed', 'error');
+        }
+    } catch (err) {
+        showToast('Google Login Service Error', 'error');
+    }
 }
 
 // --- TASK 3 & 4: Transactions (Credit / Debit) ---
@@ -187,7 +223,6 @@ async function handleTransaction(type) {
         if (result.success) {
             showToast(`${type === 'credit' ? 'Money Added' : 'Money Sent'} Successfully!`, 'success');
 
-            // Celebration for credit
             if (type === 'credit' && typeof confetti === 'function') {
                 confetti({
                     particleCount: 150,
@@ -200,7 +235,6 @@ async function handleTransaction(type) {
             amountInput.value = '';
             document.getElementById('transaction-modal').classList.add('hidden');
 
-            // Refresh data
             fetchBalance();
             fetchTransactions();
         } else {
@@ -232,6 +266,36 @@ function init() {
     document.getElementById('tab-login')?.addEventListener('click', () => showTab('login'));
     document.getElementById('tab-register')?.addEventListener('click', () => showTab('register'));
 
+    // Google Login Init
+    window.onload = function () {
+        if (window.google) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCallback
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("google-login-btn"),
+                { theme: "outline", size: "large", width: "100%", text: "continue_with" }
+            );
+        }
+    };
+
+    // Profile Dropdown Toggle
+    const profileArea = document.querySelector('.brand-profile');
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    profileArea?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown?.classList.toggle('hidden');
+    });
+
+    window.addEventListener('click', () => {
+        profileDropdown?.classList.add('hidden');
+    });
+
+    // Logout from Dropdown
+    document.getElementById('btn-logout-dropdown')?.addEventListener('click', performLogout);
+
     // Auth Forms
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -258,6 +322,7 @@ function init() {
         }
     });
 
+    // ... (rest of registration and stats buttons left as is) ...
     document.getElementById('register-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
@@ -287,7 +352,6 @@ function init() {
         }
     });
 
-    // Dashboard Buttons
     document.getElementById('btn-check-balance')?.addEventListener('click', () => {
         showToast('Updating balance...', 'info');
         fetchBalance();
@@ -302,19 +366,13 @@ function init() {
         document.getElementById('transaction-modal').classList.add('hidden');
     });
 
-    // Task 3 & 4 Buttons
     document.getElementById('btn-credit')?.addEventListener('click', () => handleTransaction('credit'));
     document.getElementById('btn-debit')?.addEventListener('click', () => handleTransaction('debit'));
 
-    // Logout
     document.getElementById('btn-logout')?.addEventListener('click', performLogout);
 
-    // Initial check
     validateSession();
-
-    // Lucide Icons
     if (window.lucide) lucide.createIcons();
 }
 
-// Start
 init();

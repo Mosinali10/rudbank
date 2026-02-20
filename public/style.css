@@ -119,6 +119,33 @@ input:focus {
     transition: 0.3s;
 }
 
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--glass-border);
+}
+
+.divider span {
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.g-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 20px var(--primary-glow);
@@ -142,19 +169,87 @@ input:focus {
     height: 100vh;
 }
 
-.sidebar-brand {
+.brand-profile {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+    cursor: pointer;
 }
 
-.brand-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--primary);
-    border-radius: 50%;
-    box-shadow: 0 0 15px var(--primary-glow);
+.user-avatar-premium {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), #9333ea);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: white;
+    border: 2px solid var(--glass-border);
+    transition: 0.3s;
+    overflow: hidden;
+}
+
+.user-avatar-premium img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-dropdown-container {
+    position: relative;
+    flex: 1;
+}
+
+.header-username {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 180px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    transform-origin: top left;
+    transition: 0.2s;
+}
+
+.profile-dropdown a,
+.logout-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: 0.3s;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.profile-dropdown a:hover,
+.logout-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.logout-item:hover {
+    color: var(--danger);
 }
 
 .sidebar-nav {

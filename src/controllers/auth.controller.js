@@ -1,7 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import pool from "../config/db.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerUser = async (req, res) => {
     const { username, email, password, phone } = req.body;
@@ -95,6 +98,74 @@ export const loginUser = async (req, res) => {
             .json(new ApiResponse(200, { token }, "Login successful"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};
+
+export const googleLogin = async (req, res) => {
+    const { idToken } = req.body;
+
+    try {
+        if (!idToken) {
+            return res.status(400).json(new ApiResponse(400, null, "Google ID Token is required"));
+        }
+
+        // Verify Google Token
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub: googleId } = payload;
+
+        // 1. Check if user exists in KodUser
+        let userResult = await pool.query("SELECT * FROM koduser WHERE email = $1", [email]);
+        let user;
+
+        if (userResult.rows.length === 0) {
+            // 2. Create new user if not exists
+            const newUser = await pool.query(
+                "INSERT INTO koduser (username, email, profile_image, role, balance, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                [name, email, picture, 'customer', 100000, 'google-oauth-user']
+            );
+            user = newUser.rows[0];
+        } else {
+            // Update profile image if it changed
+            await pool.query("UPDATE koduser SET profile_image = $1 WHERE email = $2", [picture, email]);
+            user = userResult.rows[0];
+        }
+
+        // 3. Generate JWT
+        const tokenToken = jwt.sign(
+            { uid: user.id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        // 4. Store in UserToken
+        const expiryDate = new Date();
+        expiryDate.setHours(expiryDate.getHours() + 1);
+
+        await pool.query(
+            "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
+            [tokenToken, user.id, expiryDate]
+        );
+
+        // 5. Set Cookie
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3600000 // 1 hour
+        };
+
+        return res.status(200)
+            .cookie("token", tokenToken, options)
+            .json(new ApiResponse(200, { user, token: tokenToken }, "Google login successful"));
+
+    } catch (error) {
+        console.error("GOOGLE LOGIN ERROR:", error);
+        return res.status(401).json(new ApiResponse(401, null, "Invalid Google Token"));
     }
 };
 
