@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { getBalance, creditAmount, debitAmount } from "../controllers/bank.controller.js";
+import { getBalance, creditAmount, debitAmount, getProfile } from "../controllers/bank.controller.js";
 
 const router = express.Router();
 
