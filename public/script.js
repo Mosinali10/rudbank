@@ -183,6 +183,22 @@ async function handleTransaction(type) {
 
         if (result.success) {
             showToast(`Amount ${type === 'credit' ? 'added to' : 'deducted from'} balance!`, 'success');
+
+            const balanceCard = document.querySelector('.balance-card');
+            if (type === 'credit') {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#38bdf8', '#10b981', '#ffffff']
+                });
+                balanceCard.classList.add('success-glow');
+                setTimeout(() => balanceCard.classList.remove('success-glow'), 1500);
+            } else {
+                balanceCard.classList.add('shake');
+                setTimeout(() => balanceCard.classList.remove('shake'), 500);
+            }
+
             amountInput.value = '';
             fetchProfile();
         } else {

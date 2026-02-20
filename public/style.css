@@ -48,6 +48,48 @@ body {
     }
 }
 
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-8px);
+    }
+
+    50% {
+        transform: translateX(8px);
+    }
+
+    75% {
+        transform: translateX(-8px);
+    }
+}
+
+@keyframes successGlow {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(16, 185, 129, 0));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.6));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(16, 185, 129, 0));
+    }
+}
+
+.shake {
+    animation: shake 0.4s ease-in-out;
+}
+
+.success-glow {
+    animation: successGlow 1.5s ease-out;
+}
+
 header {
     display: flex;
     justify-content: space-between;
