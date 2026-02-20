@@ -10,103 +10,25 @@ const authSection = document.getElementById('auth-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const authStatus = document.getElementById('auth-status');
 const transactionList = document.getElementById('transaction-list');
+const displayBalance = document.getElementById('display-balance');
 
-// --- Navigation ---
-function showTab(type) {
-    document.getElementById('login-form').classList.toggle('hidden', type === 'register');
-    document.getElementById('register-form').classList.toggle('hidden', type === 'login');
-    document.getElementById('tab-login').classList.toggle('active', type === 'login');
-    document.getElementById('tab-register').classList.toggle('active', type === 'register');
-}
+// --- Helper: Format Currency ---
+const formatCurrency = (val) => {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 2
+    }).format(val || 0);
+};
 
-// --- API Calls ---
-async function fetchProfile() {
-    try {
-        const res = await fetch('/api/bank/profile');
-        const result = await res.json();
-        if (result.success) {
-            appState.isLoggedIn = true;
-            appState.user = result.data;
-            fetchTransactions();
-            updateDashboard();
-        } else {
-            appState.isLoggedIn = false;
-            updateDashboard();
-        }
-    } catch (e) {
-        appState.isLoggedIn = false;
-        updateDashboard();
+// --- Helper: Update Debug Log ---
+function updateLog(data) {
+    if (jsonOutput) {
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
     }
 }
 
-async function fetchTransactions() {
-    try {
-        const res = await fetch('/api/bank/transactions');
-        const result = await res.json();
-        if (result.success) {
-            appState.transactions = result.data;
-            renderTransactions();
-        }
-    } catch (e) {
-        console.error("Failed to fetch transactions", e);
-    }
-}
-
-function renderTransactions() {
-    if (!transactionList) return;
-    if (appState.transactions.length === 0) {
-        transactionList.innerHTML = '<div class="empty-state">No transactions recently.</div>';
-        return;
-    }
-
-    transactionList.innerHTML = appState.transactions.map(tx => {
-        const isCredit = tx.type === 'credit';
-        const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-        return `
-            <div class="transaction-item">
-                <div class="tx-icon">
-                    <i data-lucide="${isCredit ? 'arrow-down-left' : 'arrow-up-right'}" style="color: ${isCredit ? '#00f59b' : '#ff4d88'}"></i>
-                </div>
-                <div class="tx-info">
-                    <div class="tx-title">${tx.description}</div>
-                    <div class="tx-date">${date} • ${tx.category}</div>
-                </div>
-                <div class="tx-amount ${isCredit ? 'amount-up' : 'amount-down'}">
-                    ${isCredit ? '+' : '-'}₹${parseFloat(tx.amount).toLocaleString('en-IN')}
-                    <span class="tx-status">${tx.status}</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-    if (window.lucide) lucide.createIcons();
-}
-
-function updateDashboard() {
-    if (appState.isLoggedIn) {
-        authSection.classList.add('hidden');
-        dashboardSection.classList.remove('hidden');
-        authStatus.textContent = 'Active Session';
-        authStatus.style.color = '#00f59b';
-
-        // Update welcome & balance
-        document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
-        document.getElementById('display-balance').textContent = `₹${parseFloat(appState.user.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-
-        // Update Sidebar Profile
-        const sidebarUser = document.getElementById('sidebar-user');
-        if (sidebarUser) {
-            sidebarUser.classList.remove('hidden');
-            document.getElementById('sidebar-username').textContent = appState.user.username;
-            document.getElementById('user-initials').textContent = appState.user.username.charAt(0).toUpperCase();
-        }
-    } else {
-        authSection.classList.remove('hidden');
-        dashboardSection.classList.add('hidden');
-        authStatus.textContent = 'Status: Guest';
-        authStatus.style.color = '#8b8ba7';
-    }
-}
-
+// --- Helper: Show Toast ---
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -119,28 +41,203 @@ function showToast(message, type = 'info') {
     }, 4000);
 }
 
-// --- Event Listeners Setup ---
-function initEvents() {
+// --- Navigation ---
+function showTab(type) {
+    document.getElementById('login-form').classList.toggle('hidden', type === 'register');
+    document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+    document.getElementById('tab-login').classList.toggle('active', type === 'login');
+    document.getElementById('tab-register').classList.toggle('active', type === 'register');
+}
+
+// --- TASK 1 & 6: Validate Session & Protect Dashboard ---
+async function validateSession() {
+    try {
+        const res = await fetch('/api/bank/profile');
+        const result = await res.json();
+        updateLog(result);
+
+        if (result.success) {
+            appState.isLoggedIn = true;
+            appState.user = result.data;
+            updateDashboardUI();
+            fetchTransactions(); // Auto fetch transactions
+            fetchBalance();      // TASK 1: Auto fetch balance on load
+        } else {
+            handleLogoutEffect();
+        }
+    } catch (e) {
+        handleLogoutEffect();
+    }
+}
+
+// --- TASK 2: Fetch Balance ---
+async function fetchBalance() {
+    try {
+        const res = await fetch('/api/bank/balance');
+        if (res.status === 401) return handleLogoutEffect();
+
+        const result = await res.json();
+        updateLog(result);
+
+        if (result.success) {
+            const balance = result.data.balance;
+            displayBalance.textContent = formatCurrency(balance);
+            if (appState.user) appState.user.balance = balance;
+        }
+    } catch (e) {
+        console.error("Balance Fetch Error:", e);
+    }
+}
+
+async function fetchTransactions() {
+    try {
+        const res = await fetch('/api/bank/transactions');
+        const result = await res.json();
+        if (result.success) {
+            appState.transactions = result.data;
+            renderTransactionsList();
+        }
+    } catch (e) {
+        console.error("TX Fetch Error:", e);
+    }
+}
+
+function renderTransactionsList() {
+    if (!transactionList) return;
+    if (appState.transactions.length === 0) {
+        transactionList.innerHTML = '<div class="empty-state">No transactions recorded yet.</div>';
+        return;
+    }
+
+    transactionList.innerHTML = appState.transactions.map(tx => {
+        const isCredit = tx.type === 'credit';
+        const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        return `
+            <div class="transaction-item">
+                <div class="tx-icon">
+                    <i data-lucide="${isCredit ? 'arrow-down-left' : 'arrow-up-right'}" style="color: ${isCredit ? '#00f59b' : '#ff4d88'}"></i>
+                </div>
+                <div class="tx-info">
+                    <div class="tx-title">${tx.description || (isCredit ? 'Account Credit' : 'Account Debit')}</div>
+                    <div class="tx-date">${date} • ${tx.category || 'Banking'}</div>
+                </div>
+                <div class="tx-amount ${isCredit ? 'amount-up' : 'amount-down'}">
+                    ${isCredit ? '+' : '-'}₹${parseFloat(tx.amount).toLocaleString('en-IN')}
+                    <span class="tx-status">${tx.status || 'completed'}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+}
+
+function updateDashboardUI() {
+    authSection.classList.add('hidden');
+    dashboardSection.classList.remove('hidden');
+    authStatus.textContent = 'Active Session';
+    authStatus.style.color = '#00f59b';
+
+    document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
+
+    // Sidebar User
+    const sidebarUser = document.getElementById('sidebar-user');
+    if (sidebarUser) {
+        sidebarUser.classList.remove('hidden');
+        document.getElementById('sidebar-username').textContent = appState.user.username;
+        document.getElementById('user-initials').textContent = appState.user.username.charAt(0).toUpperCase();
+    }
+}
+
+function handleLogoutEffect() {
+    appState.isLoggedIn = false;
+    appState.user = null;
+    authSection.classList.remove('hidden');
+    dashboardSection.classList.add('hidden');
+    authStatus.textContent = 'Status: Guest';
+    authStatus.style.color = '#8b8ba7';
+}
+
+// --- TASK 3 & 4: Transactions (Credit / Debit) ---
+async function handleTransaction(type) {
+    const amountInput = document.getElementById('transaction-amount');
+    const amount = amountInput.value;
+
+    if (!amount || parseFloat(amount) <= 0) {
+        showToast('Please enter a valid amount', 'error');
+        return;
+    }
+
+    const btn = document.getElementById(`btn-${type}`);
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+        const res = await fetch(`/api/bank/${type}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+
+        const result = await res.json();
+        updateLog(result);
+        btn.disabled = false;
+        btn.textContent = originalText;
+
+        if (result.success) {
+            showToast(`${type === 'credit' ? 'Money Added' : 'Money Sent'} Successfully!`, 'success');
+
+            // Celebration for credit
+            if (type === 'credit' && typeof confetti === 'function') {
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#c084fc', '#22d3ee', '#ffffff']
+                });
+            }
+
+            amountInput.value = '';
+            document.getElementById('transaction-modal').classList.add('hidden');
+
+            // Refresh data
+            fetchBalance();
+            fetchTransactions();
+        } else {
+            showToast(result.message || 'Transaction Failed', 'error');
+        }
+    } catch (e) {
+        showToast('Network Error. Try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+// --- TASK 5: Logout ---
+async function performLogout() {
+    try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        const result = await res.json();
+        updateLog(result);
+        showToast('Securely logged out', 'info');
+        handleLogoutEffect();
+    } catch (e) {
+        handleLogoutEffect();
+    }
+}
+
+// --- Event Listeners ---
+function init() {
     // Tabs
     document.getElementById('tab-login')?.addEventListener('click', () => showTab('login'));
     document.getElementById('tab-register')?.addEventListener('click', () => showTab('register'));
-
-    // Sidebar Links Reliability
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = link.innerText.trim();
-            if (page !== 'Dashboard') {
-                showToast(`${page} module coming soon!`, 'info');
-            }
-        });
-    });
 
     // Auth Forms
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
+
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -148,54 +245,55 @@ function initEvents() {
                 body: JSON.stringify({ username, password })
             });
             const result = await res.json();
+            updateLog(result);
+
             if (result.success) {
-                showToast('Securely logged in', 'success');
-                fetchProfile();
+                showToast('Welcome to Kodbank', 'success');
+                validateSession();
             } else {
-                showToast(result.message || 'Access Denied', 'error');
+                showToast(result.message || 'Wrong Credentials', 'error');
             }
         } catch (err) {
-            showToast('Connection Refused', 'error');
+            showToast('Service Unavailable', 'error');
         }
     });
 
     document.getElementById('register-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const user = {
+        const data = {
             username: document.getElementById('reg-username').value,
             email: document.getElementById('reg-email').value,
             password: document.getElementById('reg-password').value,
             phone: document.getElementById('reg-phone').value
         };
+
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(user)
+                body: JSON.stringify(data)
             });
             const result = await res.json();
+            updateLog(result);
+
             if (result.success) {
-                showToast('Account Created!', 'success');
+                showToast('Identity Verified! Please Login.', 'success');
                 showTab('login');
             } else {
-                showToast(result.message || 'Could not register', 'error');
+                showToast(result.message || 'Verification Failed', 'error');
             }
         } catch (err) {
-            showToast('Network Error', 'error');
+            showToast('Network Connectivity Issue', 'error');
         }
     });
 
-    // Dashboard Actions
-    document.getElementById('btn-logout-sidebar')?.addEventListener('click', async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        appState.isLoggedIn = false;
-        showToast('Logged out');
-        updateDashboard();
+    // Dashboard Buttons
+    document.getElementById('btn-check-balance')?.addEventListener('click', () => {
+        showToast('Updating balance...', 'info');
+        fetchBalance();
     });
 
-    document.getElementById('btn-refresh-balance')?.addEventListener('click', fetchProfile);
-
-    document.getElementById('btn-show-tx-modal')?.addEventListener('click', () => {
+    document.getElementById('btn-open-transaction')?.addEventListener('click', () => {
         document.getElementById('transaction-modal').classList.remove('hidden');
         document.getElementById('transaction-amount').focus();
     });
@@ -204,49 +302,19 @@ function initEvents() {
         document.getElementById('transaction-modal').classList.add('hidden');
     });
 
-    // Transaction Actions
+    // Task 3 & 4 Buttons
     document.getElementById('btn-credit')?.addEventListener('click', () => handleTransaction('credit'));
     document.getElementById('btn-debit')?.addEventListener('click', () => handleTransaction('debit'));
+
+    // Logout
+    document.getElementById('btn-logout')?.addEventListener('click', performLogout);
+
+    // Initial check
+    validateSession();
+
+    // Lucide Icons
+    if (window.lucide) lucide.createIcons();
 }
 
-async function handleTransaction(type) {
-    const amountInput = document.getElementById('transaction-amount');
-    const amount = amountInput.value;
-    if (!amount || amount <= 0) return showToast('Invalid amount', 'error');
-
-    try {
-        const btn = document.getElementById(`btn-${type}`);
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = '...';
-
-        const res = await fetch(`/api/bank/${type}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: parseFloat(amount) })
-        });
-
-        const result = await res.json();
-        btn.disabled = false;
-        btn.textContent = originalText;
-
-        if (result.success) {
-            showToast('Success!', 'success');
-            if (type === 'credit' && typeof confetti === 'function') {
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#c084fc', '#22d3ee', '#ffffff'] });
-            }
-            amountInput.value = '';
-            document.getElementById('transaction-modal').classList.add('hidden');
-            fetchProfile();
-        } else {
-            showToast(result.message, 'error');
-        }
-    } catch (e) {
-        showToast('Server error', 'error');
-    }
-}
-
-// Initialize
-initEvents();
-fetchProfile();
-if (window.lucide) lucide.createIcons();
+// Start
+init();

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kodbank | Premium Wealth Management</title>
     <!-- CSS with cache buster -->
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Icons -->
@@ -25,17 +25,18 @@
 
             <form id="login-form" class="auth-form">
                 <h2>Welcome Back</h2>
-                <input type="text" id="login-username" placeholder="Username" required>
-                <input type="password" id="login-password" placeholder="Password" required>
+                <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+                <input type="password" id="login-password" placeholder="Password" required
+                    autocomplete="current-password">
                 <button type="submit" class="btn-primary">Secure Login</button>
             </form>
 
             <form id="register-form" class="auth-form hidden">
                 <h2>Create Account</h2>
-                <input type="text" id="reg-username" placeholder="Full Name" required>
-                <input type="email" id="reg-email" placeholder="Email Address" required>
-                <input type="password" id="reg-password" placeholder="Password" required>
-                <input type="text" id="reg-phone" placeholder="Phone Number" required>
+                <input type="text" id="reg-username" placeholder="Full Name" required autocomplete="name">
+                <input type="email" id="reg-email" placeholder="Email Address" required autocomplete="email">
+                <input type="password" id="reg-password" placeholder="Password" required autocomplete="new-password">
+                <input type="text" id="reg-phone" placeholder="Phone Number" required autocomplete="tel">
                 <button type="submit" class="btn-primary">Join Kodbank</button>
             </form>
         </div>
@@ -57,13 +58,13 @@
             </nav>
             <div class="sidebar-footer">
                 <div id="sidebar-user" class="sidebar-user hidden">
-                    <div class="user-avatar" id="user-initials">M</div>
+                    <div class="user-avatar" id="user-initials">?</div>
                     <div class="user-meta">
                         <span id="sidebar-username" class="user-name">Loading...</span>
                         <span class="user-status">Pro Member</span>
                     </div>
                 </div>
-                <button id="btn-logout-sidebar" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
+                <button id="btn-logout" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
             </div>
         </aside>
 
@@ -71,13 +72,13 @@
         <main class="main-content">
             <header class="top-bar">
                 <div class="welcome-msg">
-                    <h1 id="display-welcome">Welcome back, User</h1>
+                    <h1 id="display-welcome">Welcome back</h1>
                     <p>Here's what's happening with your finance today.</p>
                 </div>
                 <div class="top-actions">
-                    <button id="btn-refresh-balance" class="btn-secondary">Check Balance</button>
-                    <button id="btn-show-tx-modal" class="btn-cta">Send Money</button>
-                    <div id="auth-status" class="status-badge">Active Session</div>
+                    <button id="btn-check-balance" class="btn-secondary">Check Balance</button>
+                    <button id="btn-open-transaction" class="btn-cta">Send Money</button>
+                    <div id="auth-status" class="status-badge">Authenticating...</div>
                 </div>
             </header>
 
@@ -86,7 +87,7 @@
                 <div class="stat-card glass hover-lift">
                     <div class="stat-header">
                         <i data-lucide="dollar-sign" class="icon-orange"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 12.5%</span>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> Active</span>
                     </div>
                     <p class="stat-label">Total Balance</p>
                     <h2 id="display-balance" class="stat-value">₹0.00</h2>
@@ -94,26 +95,26 @@
                 <div class="stat-card glass hover-lift">
                     <div class="stat-header">
                         <i data-lucide="trending-up" class="icon-red"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 8.2%</span>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 0%</span>
                     </div>
                     <p class="stat-label">Monthly Income</p>
-                    <h2 class="stat-value">₹8,432.50</h2>
+                    <h2 id="display-income" class="stat-value">₹0.00</h2>
                 </div>
                 <div class="stat-card glass hover-lift">
                     <div class="stat-header">
                         <i data-lucide="activity" class="icon-blue"></i>
-                        <span class="trend-down"><i data-lucide="arrow-down-right"></i> 4.1%</span>
+                        <span class="trend-down"><i data-lucide="arrow-down-right"></i> 0%</span>
                     </div>
                     <p class="stat-label">Monthly Expenses</p>
-                    <h2 class="stat-value">₹3,120.45</h2>
+                    <h2 id="display-expenses" class="stat-value">₹0.00</h2>
                 </div>
                 <div class="stat-card glass hover-lift">
                     <div class="stat-header">
                         <i data-lucide="briefcase" class="icon-gold"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 15.3%</span>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 0%</span>
                     </div>
                     <p class="stat-label">Total Savings</p>
-                    <h2 class="stat-value">₹12,450.00</h2>
+                    <h2 id="display-savings" class="stat-value">₹0.00</h2>
                 </div>
             </section>
 
@@ -159,7 +160,7 @@
             </div>
 
             <footer class="dashboard-footer">
-                <div id="health-status">Health Check: Connecting...</div>
+                <div id="health-status">Health: Checking...</div>
                 <div class="response-viewer glass">
                     <h3>Latest API Response</h3>
                     <pre id="json-output">{}</pre>
@@ -176,17 +177,17 @@
                 <button id="btn-close-modal" class="btn-close">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
+                <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)" min="1">
                 <div class="modal-btns">
-                    <button id="btn-credit" class="btn-success">Credit</button>
-                    <button id="btn-debit" class="btn-danger">Debit</button>
+                    <button id="btn-credit" class="btn-success">Add Money</button>
+                    <button id="btn-debit" class="btn-danger">Send Money</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- JS with cache buster -->
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
     <script>lucide.createIcons();</script>
 </body>
 
