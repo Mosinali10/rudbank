@@ -39,6 +39,12 @@ export const creditAmount = async (req, res) => {
             return res.status(404).json(new ApiResponse(404, null, "User not found for update"));
         }
 
+        // Log transaction
+        await pool.query(
+            "INSERT INTO transactions (uid, type, amount, description, category) VALUES ($1, $2, $3, $4, $5)",
+            [uid, 'credit', parseFloat(amount), 'Account Credit', 'Income']
+        );
+
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount credited successfully"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
@@ -75,7 +81,26 @@ export const debitAmount = async (req, res) => {
             return res.status(404).json(new ApiResponse(404, null, "User not found for update"));
         }
 
+        // Log transaction
+        await pool.query(
+            "INSERT INTO transactions (uid, type, amount, description, category) VALUES ($1, $2, $3, $4, $5)",
+            [uid, 'debit', parseFloat(amount), 'Account Debit', 'Expense']
+        );
+
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount debited successfully"));
+    } catch (error) {
+        return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};
+
+export const getTransactions = async (req, res) => {
+    try {
+        const { uid } = req.user;
+        const result = await pool.query(
+            "SELECT * FROM transactions WHERE uid = $1 ORDER BY created_at DESC LIMIT 10",
+            [uid]
+        );
+        return res.status(200).json(new ApiResponse(200, result.rows, "Transactions retrieved successfully"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }

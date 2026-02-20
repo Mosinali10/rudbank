@@ -4,87 +4,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RudBank | Premium Banking</title>
+    <title>Kodbank | Premium Wealth Management</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1 class="logo">Rud<span>Bank</span></h1>
-            <div id="auth-status" class="status-badge">Checking Status...</div>
-        </header>
+    <div id="auth-section" class="auth-container">
+        <div class="auth-box glass">
+            <h1 class="logo">Kod<span>bank</span></h1>
+            <div class="tabs">
+                <button id="tab-login" class="tab active">Login</button>
+                <button id="tab-register" class="tab">Register</button>
+            </div>
 
-        <main id="app">
-            <!-- Login/Register Section -->
-            <section id="auth-section" class="card glass">
-                <div class="tabs">
-                    <button id="tab-login" class="tab active">Login</button>
-                    <button id="tab-register" class="tab">Register</button>
+            <form id="login-form" class="auth-form">
+                <h2>Welcome Back</h2>
+                <input type="text" id="login-username" placeholder="Username" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Secure Login</button>
+            </form>
+
+            <form id="register-form" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <input type="text" id="reg-username" placeholder="Full Name" required>
+                <input type="email" id="reg-email" placeholder="Email Address" required>
+                <input type="password" id="reg-password" placeholder="Password" required>
+                <input type="text" id="reg-phone" placeholder="Phone Number" required>
+                <button type="submit" class="btn-primary">Join Kodbank</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-section" class="dashboard-layout hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"></div>
+                <h2>Kodbank</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="#"><i data-lucide="bar-chart-2"></i> Analytics</a>
+                <a href="#"><i data-lucide="credit-card"></i> Cards</a>
+                <a href="#"><i data-lucide="wallet"></i> Assets</a>
+                <a href="#"><i data-lucide="user"></i> Profile</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#"><i data-lucide="settings"></i> Settings</a>
+                <button id="btn-logout" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="welcome-msg">
+                    <h1 id="display-welcome">Welcome back, User</h1>
+                    <p>Here's what's happening with your finance today.</p>
                 </div>
+                <div class="top-actions">
+                    <button class="btn-secondary" onclick="fetchProfile()">Check Balance</button>
+                    <button class="btn-cta" onclick="showTransactionModal()">Send Money</button>
+                    <div id="auth-status" class="status-badge">Active Session</div>
+                </div>
+            </header>
 
-                <form id="login-form" class="auth-form">
-                    <h2>Welcome Back</h2>
-                    <input type="text" id="login-username" placeholder="Username" required>
-                    <input type="password" id="login-password" placeholder="Password" required>
-                    <button type="submit" class="btn-primary">Sign In</button>
-                </form>
-
-                <form id="register-form" class="auth-form hidden">
-                    <h2>Join RudBank</h2>
-                    <input type="text" id="reg-username" placeholder="Username" required>
-                    <input type="email" id="reg-email" placeholder="Email" required>
-                    <input type="password" id="reg-password" placeholder="Password" required>
-                    <input type="text" id="reg-phone" placeholder="Phone" required>
-                    <button type="submit" class="btn-primary">Create Account</button>
-                </form>
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card glass hover-lift">
+                    <div class="stat-header">
+                        <i data-lucide="dollar-sign" class="icon-orange"></i>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 12.5%</span>
+                    </div>
+                    <p class="stat-label">Total Balance</p>
+                    <h2 id="display-balance" class="stat-value">₹0.00</h2>
+                </div>
+                <div class="stat-card glass hover-lift">
+                    <div class="stat-header">
+                        <i data-lucide="trending-up" class="icon-red"></i>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 8.2%</span>
+                    </div>
+                    <p class="stat-label">Monthly Income</p>
+                    <h2 class="stat-value">₹8,432.50</h2>
+                </div>
+                <div class="stat-card glass hover-lift">
+                    <div class="stat-header">
+                        <i data-lucide="activity" class="icon-blue"></i>
+                        <span class="trend-down"><i data-lucide="arrow-down-right"></i> 4.1%</span>
+                    </div>
+                    <p class="stat-label">Monthly Expenses</p>
+                    <h2 class="stat-value">₹3,120.45</h2>
+                </div>
+                <div class="stat-card glass hover-lift">
+                    <div class="stat-header">
+                        <i data-lucide="briefcase" class="icon-gold"></i>
+                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 15.3%</span>
+                    </div>
+                    <p class="stat-label">Total Savings</p>
+                    <h2 class="stat-value">₹12,450.00</h2>
+                </div>
             </section>
 
-            <!-- Dashboard Section (Hidden by default) -->
-            <section id="dashboard-section" class="card glass hidden">
-                <div class="profile-header">
-                    <div class="user-info">
-                        <h2 id="display-name">Loading...</h2>
-                        <p id="display-email"></p>
+            <!-- Middle Section -->
+            <div class="content-grid">
+                <!-- Chart Area -->
+                <div class="chart-section glass">
+                    <div class="section-header">
+                        <h3>Spending Analytics</h3>
+                        <select class="time-filter">
+                            <option>Last 7 Days</option>
+                            <option>Last Month</option>
+                        </select>
                     </div>
-                    <button id="btn-logout" class="btn-outline">Logout</button>
-                </div>
-
-                <div class="balance-card">
-                    <p>Current Balance</p>
-                    <h3 id="display-balance">₹0.00</h3>
-                </div>
-
-                <div class="actions">
-                    <div class="action-group">
-                        <h4>Quick Transaction</h4>
-                        <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
-                        <div class="btn-group">
-                            <button id="btn-credit" class="btn-success">
-                                <span>+</span> Credit
-                            </button>
-                            <button id="btn-debit" class="btn-danger">
-                                <span>-</span> Debit
-                            </button>
+                    <div class="mock-chart">
+                        <div class="chart-gradient"></div>
+                        <svg class="chart-svg" viewBox="0 0 100 40">
+                            <path d="M0,35 Q10,15 20,25 T40,15 T60,25 T80,10 T100,5" fill="none"
+                                stroke="url(#chartGradient)" stroke-width="2" />
+                            <defs>
+                                <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #f97316; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #f97316; stop-opacity: 0.2" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="chart-labels">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- API Response Viewer -->
-            <section class="card glass response-viewer">
-                <h3>Latest API Response</h3>
-                <pre id="json-output">{ "status": "waiting for interaction..." }</pre>
-            </section>
+                <!-- History Area -->
+                <div class="history-section glass">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="#" class="view-all">View All</a>
+                    </div>
+                    <div id="transaction-list" class="transaction-list">
+                        <!-- Iterated by JS -->
+                        <div class="empty-state">No transactions yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="dashboard-footer">
+                <div id="health-status">Health Check: Connecting...</div>
+                <div class="response-viewer glass">
+                    <h3>Latest API Response</h3>
+                    <pre id="json-output">{}</pre>
+                </div>
+            </footer>
         </main>
-
-        <footer>
-            <p>&copy; 2026 RudBank Production-Ready API</p>
-            <p id="health-status">Health Check: Connecting...</p>
-        </footer>
     </div>
+
+    <!-- Transaction Modal (Hidden by default) -->
+    <div id="transaction-modal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Quick Transaction</h3>
+                <button onclick="closeTransactionModal()" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
+                <div class="modal-btns">
+                    <button id="btn-credit" class="btn-success">Credit</button>
+                    <button id="btn-debit" class="btn-danger">Debit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 const appState = {
     isLoggedIn: false,
-    user: null
+    user: null,
+    transactions: []
 };
 
 // UI Elements
@@ -8,6 +9,7 @@ const jsonOutput = document.getElementById('json-output');
 const authSection = document.getElementById('auth-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const authStatus = document.getElementById('auth-status');
+const transactionList = document.getElementById('transaction-list');
 
 // --- Navigation ---
 function showTab(type) {
@@ -25,7 +27,6 @@ function updateLog(data) {
 }
 
 function showToast(message, type = 'info') {
-    // Simple modern toast logic
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
@@ -33,8 +34,8 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.classList.add('show'), 100);
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
 }
 
 // --- API Calls ---
@@ -46,7 +47,7 @@ async function checkHealth() {
         el.textContent = `Health Check: ${data.message}`;
         el.style.color = '#10b981';
     } catch (e) {
-        document.getElementById('health-status').textContent = 'Health Check: Failed to Connect';
+        document.getElementById('health-status').textContent = 'Health Check: Off';
         document.getElementById('health-status').style.color = '#ef4444';
     }
 }
@@ -59,6 +60,7 @@ async function fetchProfile() {
         if (result.success) {
             appState.isLoggedIn = true;
             appState.user = result.data;
+            fetchTransactions();
             updateDashboard();
         } else {
             appState.isLoggedIn = false;
@@ -71,15 +73,55 @@ async function fetchProfile() {
     }
 }
 
+async function fetchTransactions() {
+    try {
+        const res = await fetch('/api/bank/transactions');
+        const result = await res.json();
+        if (result.success) {
+            appState.transactions = result.data;
+            renderTransactions();
+        }
+    } catch (e) {
+        console.error("Failed to fetch transactions", e);
+    }
+}
+
+function renderTransactions() {
+    if (appState.transactions.length === 0) {
+        transactionList.innerHTML = '<div class="empty-state">No transactions recently.</div>';
+        return;
+    }
+
+    transactionList.innerHTML = appState.transactions.map(tx => {
+        const isCredit = tx.type === 'credit';
+        const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        return `
+            <div class="transaction-item">
+                <div class="tx-icon">
+                    <i data-lucide="${isCredit ? 'arrow-down-left' : 'arrow-up-right'}" style="color: ${isCredit ? '#10b981' : '#ef4444'}"></i>
+                </div>
+                <div class="tx-info">
+                    <div class="tx-title">${tx.description}</div>
+                    <div class="tx-date">${date} • ${tx.category}</div>
+                </div>
+                <div class="tx-amount ${isCredit ? 'amount-up' : 'amount-down'}">
+                    ${isCredit ? '+' : '-'}₹${parseFloat(tx.amount).toLocaleString('en-IN')}
+                    <span class="tx-status">${tx.status}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+    lucide.createIcons();
+}
+
 function updateDashboard() {
     if (appState.isLoggedIn) {
         authSection.classList.add('hidden');
         dashboardSection.classList.remove('hidden');
-        authStatus.textContent = 'Status: Active Session';
+        authStatus.textContent = 'Active Session';
         authStatus.style.color = '#10b981';
 
-        document.getElementById('display-name').textContent = appState.user.username;
-        document.getElementById('display-email').textContent = appState.user.email;
+        document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
         document.getElementById('display-balance').textContent = `₹${parseFloat(appState.user.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
     } else {
         authSection.classList.remove('hidden');
@@ -102,15 +144,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             body: JSON.stringify({ username, password })
         });
         const result = await res.json();
-        updateLog(result);
         if (result.success) {
-            showToast('Welcome back!', 'success');
+            showToast('Securely logged in', 'success');
             fetchProfile();
         } else {
-            showToast(result.message || 'Login failed', 'error');
+            showToast(result.message || 'Access Denied', 'error');
         }
     } catch (err) {
-        showToast('System Error: Could not connect to server', 'error');
+        showToast('Connection Refused', 'error');
     }
 });
 
@@ -130,44 +171,44 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             body: JSON.stringify(user)
         });
         const result = await res.json();
-        updateLog(result);
         if (result.success) {
-            showToast('Account created! Please login.', 'success');
+            showToast('Account Created!', 'success');
             showTab('login');
         } else {
-            showToast(result.message || 'Registration failed', 'error');
+            showToast(result.message || 'Could not register', 'error');
         }
     } catch (err) {
-        showToast('System Error: Could not connect to server', 'error');
+        showToast('Network Error', 'error');
     }
 });
 
 document.getElementById('btn-logout').addEventListener('click', async () => {
-    try {
-        const res = await fetch('/api/auth/logout', { method: 'POST' });
-        const result = await res.json();
-        updateLog(result);
-        appState.isLoggedIn = false;
-        showToast('Logged out successfully');
-        updateDashboard();
-    } catch (err) {
-        updateDashboard();
-    }
+    await fetch('/api/auth/logout', { method: 'POST' });
+    appState.isLoggedIn = false;
+    showToast('Securely logged out');
+    updateDashboard();
 });
+
+// --- Transaction Modal ---
+function showTransactionModal() {
+    document.getElementById('transaction-modal').classList.remove('hidden');
+    document.getElementById('transaction-amount').focus();
+}
+
+function closeTransactionModal() {
+    document.getElementById('transaction-modal').classList.add('hidden');
+}
 
 async function handleTransaction(type) {
     const amountInput = document.getElementById('transaction-amount');
     const amount = amountInput.value;
-
-    if (!amount || isNaN(amount) || amount <= 0) {
-        return showToast('Please enter a valid amount greater than 0', 'error');
-    }
+    if (!amount || amount <= 0) return showToast('Invalid amount', 'error');
 
     try {
         const btn = document.getElementById(`btn-${type}`);
-        const originalText = btn.innerHTML;
+        const originalText = btn.textContent;
         btn.disabled = true;
-        btn.innerHTML = 'Processing...';
+        btn.textContent = 'Processing...';
 
         const res = await fetch(`/api/bank/${type}`, {
             method: 'POST',
@@ -175,58 +216,40 @@ async function handleTransaction(type) {
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
 
-        const contentType = res.headers.get("content-type");
-        let result;
-        if (contentType && contentType.includes("application/json")) {
-            result = await res.json();
-        } else {
-            const raw = await res.text();
-            throw new Error(raw.substring(0, 50));
-        }
-
-        updateLog(result);
-
+        const result = await res.json();
         btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.textContent = originalText;
 
         if (result.success) {
-            showToast(`Amount ${type === 'credit' ? 'added to' : 'deducted from'} balance!`, 'success');
-
-            const balanceCard = document.querySelector('.balance-card');
-            if (type === 'credit') {
+            showToast('Transaction Perfect!', 'success');
+            if (type === 'credit' && typeof confetti === 'function') {
                 confetti({
                     particleCount: 150,
-                    spread: 70,
+                    spread: 80,
                     origin: { y: 0.6 },
-                    colors: ['#38bdf8', '#10b981', '#ffffff']
+                    colors: ['#f97316', '#ffffff']
                 });
-                balanceCard.classList.add('success-glow');
-                setTimeout(() => balanceCard.classList.remove('success-glow'), 1500);
-            } else {
-                balanceCard.classList.add('shake');
-                setTimeout(() => balanceCard.classList.remove('shake'), 500);
             }
-
             amountInput.value = '';
+            closeTransactionModal();
             fetchProfile();
         } else {
-            showToast(result.message || 'Transaction failed', 'error');
+            showToast(result.message, 'error');
         }
     } catch (e) {
-        console.error("TX ERROR:", e);
-        showToast(`Error: ${e.message.length > 30 ? 'Internal Server Error' : e.message}`, 'error');
-
-        // Reset buttons if they were stuck
-        const btnC = document.getElementById(`btn-credit`);
-        const btnD = document.getElementById(`btn-debit`);
-        btnC.disabled = false; btnC.innerHTML = '<span>+</span> Credit';
-        btnD.disabled = false; btnD.innerHTML = '<span>-</span> Debit';
+        showToast('Server error', 'error');
     }
 }
 
 document.getElementById('btn-credit').addEventListener('click', () => handleTransaction('credit'));
 document.getElementById('btn-debit').addEventListener('click', () => handleTransaction('debit'));
 
+// Close modal on escape
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeTransactionModal();
+});
+
 // Init
 checkHealth();
 fetchProfile();
+lucide.createIcons();
