@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 
 export const registerUser = async (req, res) => {
@@ -12,7 +13,7 @@ export const registerUser = async (req, res) => {
         }
 
         // 2. Check if email already exists
-        const emailCheck = await pool.query("SELECT * FROM KodUser WHERE email = $1", [email]);
+        const emailCheck = await pool.query("SELECT * FROM KodUser WHERE email = $2", [email]);
         if (emailCheck.rows.length > 0) {
             return res.status(400).json({ message: "Email already exists" });
         }
@@ -54,9 +55,17 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        // 3. Return success (JWT will be added later)
+        // 3. Generate JWT
+        const token = jwt.sign(
+            { id: user.id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+        );
+
+        // 4. Return success with token
         res.status(200).json({
             message: "Login successful",
+            token,
             user: {
                 id: user.id,
                 username: user.username,
