@@ -17,6 +17,9 @@ function showTab(type) {
     document.getElementById('tab-register').classList.toggle('active', type === 'register');
 }
 
+document.getElementById('tab-login').addEventListener('click', () => showTab('login'));
+document.getElementById('tab-register').addEventListener('click', () => showTab('register'));
+
 function updateLog(data) {
     jsonOutput.textContent = JSON.stringify(data, null, 2);
 }
