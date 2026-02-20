@@ -13,13 +13,13 @@ export const registerUser = async (req, res) => {
         }
 
         // 1. Check if username already exists
-        const userCheck = await pool.query("SELECT * FROM KodUser WHERE username = $1", [username]);
+        const userCheck = await pool.query("SELECT * FROM \"KodUser\" WHERE username = $1", [username]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Username already exists"));
         }
 
         // 2. Check if email already exists
-        const emailCheck = await pool.query("SELECT * FROM KodUser WHERE email = $1", [email]);
+        const emailCheck = await pool.query("SELECT * FROM \"KodUser\" WHERE email = $1", [email]);
         if (emailCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Email already exists"));
         }
@@ -29,7 +29,7 @@ export const registerUser = async (req, res) => {
 
         // 4. Insert into KodUser
         await pool.query(
-            "INSERT INTO KodUser (username, email, password, phone, role, balance) VALUES ($1, $2, $3, $4, $5, $6)",
+            "INSERT INTO \"KodUser\" (username, email, password, phone, role, balance) VALUES ($1, $2, $3, $4, $5, $6)",
             [username, email, hashedPassword, phone, 'customer', 100000]
         );
 
@@ -50,7 +50,7 @@ export const loginUser = async (req, res) => {
 
         // 1. Find user by username
         const userQuery = await pool.query(
-            "SELECT * FROM KodUser WHERE username = $1",
+            "SELECT * FROM \"KodUser\" WHERE username = $1",
             [username]
         );
 
