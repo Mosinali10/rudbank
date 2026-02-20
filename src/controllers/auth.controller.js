@@ -34,17 +34,17 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-        // 1. Find user by username or email
+        // 1. Find user by username
         const userQuery = await pool.query(
-            "SELECT * FROM KodUser WHERE username = $1 OR email = $2",
-            [username || "", email || ""]
+            "SELECT * FROM KodUser WHERE username = $1",
+            [username]
         );
 
         if (userQuery.rows.length === 0) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         const user = userQuery.rows[0];
@@ -52,26 +52,29 @@ export const loginUser = async (req, res) => {
         // 2. Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         // 3. Generate JWT
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.role },
+            { uid: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+            { expiresIn: "1h" }
         );
 
-        // 4. Return success with token
+        // 4. Insert into UserToken table
+        const expiryDate = new Date();
+        expiryDate.setHours(expiryDate.getHours() + 1);
+
+        await pool.query(
+            "INSERT INTO UserToken (token, uid, expiry) VALUES ($1, $2, $3)",
+            [token, user.id, expiryDate]
+        );
+
+        // 5. Return success with token
         res.status(200).json({
             message: "Login successful",
-            token,
-            user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                role: user.role
-            }
+            token
         });
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
