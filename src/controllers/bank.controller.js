@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const getBalance = async (req, res) => {
     try {
@@ -10,14 +11,12 @@ export const getBalance = async (req, res) => {
         );
 
         if (balanceQuery.rows.length === 0) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
         }
 
-        res.status(200).json({
-            balance: balanceQuery.rows[0].balance
-        });
+        return res.status(200).json(new ApiResponse(200, { balance: balanceQuery.rows[0].balance }));
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
 
@@ -26,21 +25,19 @@ export const creditAmount = async (req, res) => {
         const { uid } = req.user;
         const { amount } = req.body;
 
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ message: "Invalid amount" });
+        // Validation
+        if (!amount || isNaN(amount) || amount <= 0) {
+            return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
         const updateResult = await pool.query(
             "UPDATE KodUser SET balance = balance + $1 WHERE id = $2 RETURNING balance",
-            [amount, uid]
+            [parseFloat(amount), uid]
         );
 
-        res.status(200).json({
-            message: "Amount credited successfully",
-            newBalance: updateResult.rows[0].balance
-        });
+        return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount credited successfully"));
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
 
@@ -49,28 +46,26 @@ export const debitAmount = async (req, res) => {
         const { uid } = req.user;
         const { amount } = req.body;
 
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ message: "Invalid amount" });
+        // Validation
+        if (!amount || isNaN(amount) || amount <= 0) {
+            return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
         // Check sufficient funds
         const userQuery = await pool.query("SELECT balance FROM KodUser WHERE id = $1", [uid]);
         const currentBalance = userQuery.rows[0].balance;
 
-        if (currentBalance < amount) {
-            return res.status(400).json({ message: "Insufficient balance" });
+        if (parseFloat(currentBalance) < parseFloat(amount)) {
+            return res.status(400).json(new ApiResponse(400, null, "Insufficient balance"));
         }
 
         const updateResult = await pool.query(
             "UPDATE KodUser SET balance = balance - $1 WHERE id = $2 RETURNING balance",
-            [amount, uid]
+            [parseFloat(amount), uid]
         );
 
-        res.status(200).json({
-            message: "Amount debited successfully",
-            newBalance: updateResult.rows[0].balance
-        });
+        return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount debited successfully"));
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };

@@ -3,12 +3,11 @@ import pool from "../config/db.js";
 
 export const verifyJWT = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ message: "No token provided" });
-        }
+        const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
 
-        const token = authHeader.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
 
         // 1. Verify token existence and validity in database
         const tokenQuery = await pool.query(

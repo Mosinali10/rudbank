@@ -1,21 +1,27 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const registerUser = async (req, res) => {
     const { username, email, password, phone } = req.body;
 
     try {
+        // Validation
+        if (!username || !email || !password || !phone) {
+            return res.status(400).json(new ApiResponse(400, null, "All fields are required"));
+        }
+
         // 1. Check if username already exists
         const userCheck = await pool.query("SELECT * FROM KodUser WHERE username = $1", [username]);
         if (userCheck.rows.length > 0) {
-            return res.status(400).json({ message: "Username already exists" });
+            return res.status(400).json(new ApiResponse(400, null, "Username already exists"));
         }
 
         // 2. Check if email already exists
-        const emailCheck = await pool.query("SELECT * FROM KodUser WHERE email = $2", [email]);
+        const emailCheck = await pool.query("SELECT * FROM KodUser WHERE email = $1", [email]);
         if (emailCheck.rows.length > 0) {
-            return res.status(400).json({ message: "Email already exists" });
+            return res.status(400).json(new ApiResponse(400, null, "Email already exists"));
         }
 
         // 3. Hash password
@@ -27,9 +33,9 @@ export const registerUser = async (req, res) => {
             [username, email, hashedPassword, phone, 'customer', 100000]
         );
 
-        res.status(201).json({ message: "User registered successfully" });
+        return res.status(201).json(new ApiResponse(201, null, "User registered successfully"));
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
 
@@ -37,6 +43,11 @@ export const loginUser = async (req, res) => {
     const { username, password } = req.body;
 
     try {
+        // Validation
+        if (!username || !password) {
+            return res.status(400).json(new ApiResponse(400, null, "Username and password are required"));
+        }
+
         // 1. Find user by username
         const userQuery = await pool.query(
             "SELECT * FROM KodUser WHERE username = $1",
@@ -44,7 +55,7 @@ export const loginUser = async (req, res) => {
         );
 
         if (userQuery.rows.length === 0) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
         const user = userQuery.rows[0];
@@ -52,7 +63,7 @@ export const loginUser = async (req, res) => {
         // 2. Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
         // 3. Generate JWT
@@ -71,12 +82,18 @@ export const loginUser = async (req, res) => {
             [token, user.id, expiryDate]
         );
 
-        // 5. Return success with token
-        res.status(200).json({
-            message: "Login successful",
-            token
-        });
+        // 5. Secure token as HttpOnly cookie
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3600000 // 1 hour
+        };
+
+        return res.status(200)
+            .cookie("token", token, options)
+            .json(new ApiResponse(200, { token }, "Login successful"));
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
