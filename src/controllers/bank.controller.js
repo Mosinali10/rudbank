@@ -6,7 +6,7 @@ export const getBalance = async (req, res) => {
         const { uid } = req.user;
 
         const balanceQuery = await pool.query(
-            "SELECT balance FROM koduser WHERE id = $1",
+            "SELECT balance FROM \"KodUser\" WHERE id = $1",
             [uid]
         );
 
@@ -31,7 +31,7 @@ export const creditAmount = async (req, res) => {
         }
 
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance + $1 WHERE id = $2 RETURNING balance",
+            "UPDATE \"KodUser\" SET balance = balance + $1 WHERE id = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -52,7 +52,7 @@ export const debitAmount = async (req, res) => {
         }
 
         // Check sufficient funds
-        const userQuery = await pool.query("SELECT balance FROM koduser WHERE id = $1", [uid]);
+        const userQuery = await pool.query("SELECT balance FROM \"KodUser\" WHERE id = $1", [uid]);
         const currentBalance = userQuery.rows[0].balance;
 
         if (parseFloat(currentBalance) < parseFloat(amount)) {
@@ -60,7 +60,7 @@ export const debitAmount = async (req, res) => {
         }
 
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance - $1 WHERE id = $2 RETURNING balance",
+            "UPDATE \"KodUser\" SET balance = balance - $1 WHERE id = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -75,7 +75,7 @@ export const getProfile = async (req, res) => {
         const { uid } = req.user;
 
         const userQuery = await pool.query(
-            "SELECT username, email, role, balance FROM koduser WHERE id = $1",
+            "SELECT username, email, role, balance FROM \"KodUser\" WHERE id = $1",
             [uid]
         );
 
