@@ -11,7 +11,7 @@ export const verifyJWT = async (req, res, next) => {
 
         // 1. Verify token existence and validity in database
         const tokenQuery = await pool.query(
-            "SELECT * FROM UserToken WHERE token = $1 AND expiry > NOW()",
+            "SELECT * FROM \"UserToken\" WHERE token = $1 AND expiry > NOW()",
             [token]
         );
 

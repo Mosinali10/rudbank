@@ -78,7 +78,7 @@ export const loginUser = async (req, res) => {
         expiryDate.setHours(expiryDate.getHours() + 1);
 
         await pool.query(
-            "INSERT INTO UserToken (token, uid, expiry) VALUES ($1, $2, $3)",
+            "INSERT INTO \"UserToken\" (token, uid, expiry) VALUES ($1, $2, $3)",
             [token, user.id, expiryDate]
         );
 
@@ -104,7 +104,7 @@ export const logoutUser = async (req, res) => {
 
         if (token) {
             // Remove token from database
-            await pool.query("DELETE FROM UserToken WHERE token = $1", [token]);
+            await pool.query("DELETE FROM \"UserToken\" WHERE token = $1", [token]);
         }
 
         const options = {
