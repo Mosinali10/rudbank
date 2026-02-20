@@ -57,10 +57,15 @@
 
                 <div class="actions">
                     <div class="action-group">
-                        <input type="number" id="transaction-amount" placeholder="Amount (₹)">
+                        <h4>Quick Transaction</h4>
+                        <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
                         <div class="btn-group">
-                            <button onclick="performTransaction('credit')" class="btn-success">Credit</button>
-                            <button onclick="performTransaction('debit')" class="btn-danger">Debit</button>
+                            <button onclick="performTransaction('credit')" class="btn-success">
+                                <span>+</span> Credit
+                            </button>
+                            <button onclick="performTransaction('debit')" class="btn-danger">
+                                <span>-</span> Debit
+                            </button>
                         </div>
                     </div>
                 </div>
