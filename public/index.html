@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kodbank | Premium Wealth Management</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- CSS with cache buster -->
+    <link rel="stylesheet" href="style.css?v=2">
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Icons -->
@@ -56,7 +57,7 @@
             </nav>
             <div class="sidebar-footer">
                 <a href="#"><i data-lucide="settings"></i> Settings</a>
-                <button id="btn-logout" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
+                <button id="btn-logout-sidebar" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
             </div>
         </aside>
 
@@ -68,8 +69,8 @@
                     <p>Here's what's happening with your finance today.</p>
                 </div>
                 <div class="top-actions">
-                    <button class="btn-secondary" onclick="fetchProfile()">Check Balance</button>
-                    <button class="btn-cta" onclick="showTransactionModal()">Send Money</button>
+                    <button id="btn-refresh-balance" class="btn-secondary">Check Balance</button>
+                    <button id="btn-show-tx-modal" class="btn-cta">Send Money</button>
                     <div id="auth-status" class="status-badge">Active Session</div>
                 </div>
             </header>
@@ -146,8 +147,7 @@
                         <a href="#" class="view-all">View All</a>
                     </div>
                     <div id="transaction-list" class="transaction-list">
-                        <!-- Iterated by JS -->
-                        <div class="empty-state">No transactions yet.</div>
+                        <div class="empty-state">No transactions recently.</div>
                     </div>
                 </div>
             </div>
@@ -162,12 +162,12 @@
         </main>
     </div>
 
-    <!-- Transaction Modal (Hidden by default) -->
+    <!-- Transaction Modal -->
     <div id="transaction-modal" class="modal-overlay hidden">
         <div class="modal-content glass">
             <div class="modal-header">
                 <h3>Quick Transaction</h3>
-                <button onclick="closeTransactionModal()" class="btn-close">&times;</button>
+                <button id="btn-close-modal" class="btn-close">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="number" id="transaction-amount" placeholder="Enter Amount (₹)">
@@ -179,7 +179,8 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- JS with cache buster -->
+    <script src="script.js?v=2"></script>
     <script>lucide.createIcons();</script>
 </body>
 

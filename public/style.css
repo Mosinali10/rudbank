@@ -41,7 +41,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at top right, #2d1810, #0a0a0b);
+    background: radial-gradient(circle at top right, #1a1033, #020205);
 }
 
 .auth-box {
