@@ -35,6 +35,10 @@ export const creditAmount = async (req, res) => {
             [parseFloat(amount), uid]
         );
 
+        if (updateResult.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found for update"));
+        }
+
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount credited successfully"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
@@ -53,6 +57,9 @@ export const debitAmount = async (req, res) => {
 
         // Check sufficient funds
         const userQuery = await pool.query("SELECT balance FROM koduser WHERE id = $1", [uid]);
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        }
         const currentBalance = userQuery.rows[0].balance;
 
         if (parseFloat(currentBalance) < parseFloat(amount)) {
@@ -63,6 +70,10 @@ export const debitAmount = async (req, res) => {
             "UPDATE koduser SET balance = balance - $1 WHERE id = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
+
+        if (updateResult.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found for update"));
+        }
 
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount debited successfully"));
     } catch (error) {

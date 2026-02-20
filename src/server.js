@@ -20,14 +20,18 @@ app.use((req, res, next) => {
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "1; mode=block");
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    res.setHeader("Content-Security-Policy", "default-src 'self'");
+    // Allow confetti from jsdelivr
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; ");
     next();
 });
 
 // Middleware
+const allowedOrigin = process.env.CORS_ORIGIN === "*" ? true : process.env.CORS_ORIGIN;
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || "*",
-    credentials: true
+    origin: allowedOrigin || true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
 }));
 app.use(express.json());
 app.use(cookieParser());
