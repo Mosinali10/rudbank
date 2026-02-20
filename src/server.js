@@ -31,12 +31,29 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/bank", bankRoutes);
 
+// Health Check
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ success: true, message: "RudBank API running" });
+});
+
 // Global Error Handler
 import { errorHandler } from "./middlewares/error.middleware.js";
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Token Expiry Cleanup Logic
+import pool from "./config/db.js";
+const cleanupExpiredTokens = async () => {
+    try {
+        await pool.query("DELETE FROM UserToken WHERE expiry < NOW()");
+        console.log("Expired tokens cleaned up");
+    } catch (error) {
+        console.error("Token cleanup error:", error.message);
+    }
+};
+
+app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+    await cleanupExpiredTokens();
 });

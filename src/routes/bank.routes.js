@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.use(verifyJWT);
 
+router.get("/profile", getProfile);
 router.get("/balance", getBalance);
 router.post("/credit", creditAmount);
 router.post("/debit", debitAmount);

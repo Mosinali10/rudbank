@@ -97,3 +97,25 @@ export const loginUser = async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
+
+export const logoutUser = async (req, res) => {
+    try {
+        const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
+
+        if (token) {
+            // Remove token from database
+            await pool.query("DELETE FROM UserToken WHERE token = $1", [token]);
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+        };
+
+        return res.status(200)
+            .clearCookie("token", options)
+            .json(new ApiResponse(200, null, "Logged out successfully"));
+    } catch (error) {
+        return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};

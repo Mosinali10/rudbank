@@ -69,3 +69,22 @@ export const debitAmount = async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
+
+export const getProfile = async (req, res) => {
+    try {
+        const { uid } = req.user;
+
+        const userQuery = await pool.query(
+            "SELECT username, email, role, balance FROM KodUser WHERE id = $1",
+            [uid]
+        );
+
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        }
+
+        return res.status(200).json(new ApiResponse(200, userQuery.rows[0], "Profile retrieved successfully"));
+    } catch (error) {
+        return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};
