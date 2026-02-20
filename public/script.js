@@ -175,7 +175,15 @@ async function handleTransaction(type) {
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
 
-        const result = await res.json();
+        const contentType = res.headers.get("content-type");
+        let result;
+        if (contentType && contentType.includes("application/json")) {
+            result = await res.json();
+        } else {
+            const raw = await res.text();
+            throw new Error(raw.substring(0, 50));
+        }
+
         updateLog(result);
 
         btn.disabled = false;
@@ -205,7 +213,14 @@ async function handleTransaction(type) {
             showToast(result.message || 'Transaction failed', 'error');
         }
     } catch (e) {
-        showToast('Server error during transaction', 'error');
+        console.error("TX ERROR:", e);
+        showToast(`Error: ${e.message.length > 30 ? 'Internal Server Error' : e.message}`, 'error');
+
+        // Reset buttons if they were stuck
+        const btnC = document.getElementById(`btn-credit`);
+        const btnD = document.getElementById(`btn-debit`);
+        btnC.disabled = false; btnC.innerHTML = '<span>+</span> Credit';
+        btnD.disabled = false; btnD.innerHTML = '<span>-</span> Debit';
     }
 }
 
