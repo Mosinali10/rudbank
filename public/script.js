@@ -227,7 +227,7 @@ async function handleTransaction(type) {
                     particleCount: 150,
                     spread: 80,
                     origin: { y: 0.6 },
-                    colors: ['#f97316', '#ffffff']
+                    colors: ['#c084fc', '#22d3ee', '#ffffff']
                 });
             }
             amountInput.value = '';

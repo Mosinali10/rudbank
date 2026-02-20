@@ -1,18 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --bg-black: #0a0a0b;
-    --bg-dark: #121214;
-    --sidebar-bg: #18181b;
-    --card-bg: rgba(24, 24, 27, 0.6);
-    --primary: #f97316;
-    /* Orange highlight */
-    --primary-glow: rgba(249, 115, 22, 0.3);
+    --bg-black: #020205;
+    --bg-dark: #08081a;
+    --sidebar-bg: #050512;
+    --card-bg: rgba(15, 15, 35, 0.7);
+    --primary: #c084fc;
+    /* Amethyst Purple */
+    --primary-glow: rgba(192, 132, 252, 0.4);
+    --secondary: #22d3ee;
+    /* Cyber Cyan */
     --text-white: #ffffff;
-    --text-muted: #a1a1aa;
-    --success: #10b981;
-    --danger: #ef4444;
-    --glass-border: rgba(255, 255, 255, 0.05);
+    --text-muted: #8b8ba7;
+    --success: #00f59b;
+    --danger: #ff4d88;
+    --glass-border: rgba(192, 132, 252, 0.15);
 }
 
 * {
@@ -23,7 +25,7 @@
 }
 
 body {
-    background-color: var(--bg-black);
+    background: radial-gradient(circle at top right, #1a1033, #020205);
     color: var(--text-white);
     min-height: 100vh;
     overflow-x: hidden;
@@ -250,14 +252,14 @@ input:focus {
 }
 
 .btn-cta {
-    background: linear-gradient(135deg, #f97316, #ea580c);
+    background: linear-gradient(135deg, #c084fc, #9333ea);
     border: none;
     color: white;
     padding: 0.8rem 1.5rem;
     border-radius: 1rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 4px 15px rgba(192, 132, 252, 0.4);
 }
 
 /* Stats Cards */
@@ -285,19 +287,19 @@ input:focus {
 }
 
 .icon-orange {
-    color: #fb923c;
+    color: #c084fc;
 }
 
 .icon-red {
-    color: #f87171;
+    color: #f472b6;
 }
 
 .icon-blue {
-    color: #60a5fa;
+    color: #22d3ee;
 }
 
 .icon-gold {
-    color: #fbbf24;
+    color: #818cf8;
 }
 
 .trend-up {
