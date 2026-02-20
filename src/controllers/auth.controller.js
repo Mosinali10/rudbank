@@ -13,13 +13,13 @@ export const registerUser = async (req, res) => {
         }
 
         // 1. Check if username already exists
-        const userCheck = await pool.query("SELECT * FROM \"KodUser\" WHERE username = $1", [username]);
+        const userCheck = await pool.query("SELECT * FROM koduser WHERE username = $1", [username]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Username already exists"));
         }
 
         // 2. Check if email already exists
-        const emailCheck = await pool.query("SELECT * FROM \"KodUser\" WHERE email = $1", [email]);
+        const emailCheck = await pool.query("SELECT * FROM koduser WHERE email = $1", [email]);
         if (emailCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Email already exists"));
         }
@@ -27,9 +27,9 @@ export const registerUser = async (req, res) => {
         // 3. Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 4. Insert into "KodUser"
+        // 4. Insert into koduser
         await pool.query(
-            "INSERT INTO \"KodUser\" (username, email, password, phone, role, balance) VALUES ($1, $2, $3, $4, $5, $6)",
+            "INSERT INTO koduser (username, email, password, phone, role, balance) VALUES ($1, $2, $3, $4, $5, $6)",
             [username, email, hashedPassword, phone, 'customer', 100000]
         );
 
@@ -50,7 +50,7 @@ export const loginUser = async (req, res) => {
 
         // 1. Find user by username
         const userQuery = await pool.query(
-            "SELECT * FROM \"KodUser\" WHERE username = $1",
+            "SELECT * FROM koduser WHERE username = $1",
             [username]
         );
 
@@ -78,7 +78,7 @@ export const loginUser = async (req, res) => {
         expiryDate.setHours(expiryDate.getHours() + 1);
 
         await pool.query(
-            "INSERT INTO \"UserToken\" (token, uid, expiry) VALUES ($1, $2, $3)",
+            "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
             [token, user.id, expiryDate]
         );
 
@@ -104,7 +104,7 @@ export const logoutUser = async (req, res) => {
 
         if (token) {
             // Remove token from database
-            await pool.query("DELETE FROM \"UserToken\" WHERE token = $1", [token]);
+            await pool.query("DELETE FROM usertoken WHERE token = $1", [token]);
         }
 
         const options = {

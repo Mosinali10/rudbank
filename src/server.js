@@ -47,7 +47,7 @@ const PORT = process.env.PORT || 5000;
 import pool from "./config/db.js";
 const cleanupExpiredTokens = async () => {
     try {
-        await pool.query("DELETE FROM \"UserToken\" WHERE expiry < NOW()");
+        await pool.query("DELETE FROM usertoken WHERE expiry < NOW()");
         console.log("Expired tokens cleaned up");
     } catch (error) {
         console.error("Token cleanup error:", error.message);
