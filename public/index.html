@@ -56,7 +56,13 @@
                 <a href="#"><i data-lucide="user"></i> Profile</a>
             </nav>
             <div class="sidebar-footer">
-                <a href="#"><i data-lucide="settings"></i> Settings</a>
+                <div id="sidebar-user" class="sidebar-user hidden">
+                    <div class="user-avatar" id="user-initials">M</div>
+                    <div class="user-meta">
+                        <span id="sidebar-username" class="user-name">Loading...</span>
+                        <span class="user-status">Pro Member</span>
+                    </div>
+                </div>
                 <button id="btn-logout-sidebar" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
             </div>
         </aside>

@@ -88,8 +88,17 @@ function updateDashboard() {
         authStatus.textContent = 'Active Session';
         authStatus.style.color = '#00f59b';
 
+        // Update welcome & balance
         document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
         document.getElementById('display-balance').textContent = `₹${parseFloat(appState.user.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+        // Update Sidebar Profile
+        const sidebarUser = document.getElementById('sidebar-user');
+        if (sidebarUser) {
+            sidebarUser.classList.remove('hidden');
+            document.getElementById('sidebar-username').textContent = appState.user.username;
+            document.getElementById('user-initials').textContent = appState.user.username.charAt(0).toUpperCase();
+        }
     } else {
         authSection.classList.remove('hidden');
         dashboardSection.classList.add('hidden');
@@ -115,6 +124,17 @@ function initEvents() {
     // Tabs
     document.getElementById('tab-login')?.addEventListener('click', () => showTab('login'));
     document.getElementById('tab-register')?.addEventListener('click', () => showTab('register'));
+
+    // Sidebar Links Reliability
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.innerText.trim();
+            if (page !== 'Dashboard') {
+                showToast(`${page} module coming soon!`, 'info');
+            }
+        });
+    });
 
     // Auth Forms
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
