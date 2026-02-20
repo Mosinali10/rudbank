@@ -26,6 +26,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.static("public"));
 
 // Routes
 app.use("/api/auth", authRoutes);
