@@ -54,7 +54,11 @@ const cleanupExpiredTokens = async () => {
     }
 };
 
-app.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
-    await cleanupExpiredTokens();
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+    app.listen(PORT, async () => {
+        console.log(`Server running on port ${PORT}`);
+        await cleanupExpiredTokens();
+    });
+}
+
+export default app;
