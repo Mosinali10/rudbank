@@ -56,20 +56,31 @@ function showTab(type) {
 // --- TASK 1 & 6: Validate Session & Protect Dashboard ---
 async function validateSession() {
     try {
-        const res = await fetch('/api/bank/profile');
+        const res = await fetch('/api/bank/profile', {
+            credentials: 'include'   // 🔥 THIS WAS MISSING
+        });
+
+        // If backend says unauthorized → logout UI
+        if (res.status === 401) {
+            return handleLogoutEffect();
+        }
+
         const result = await res.json();
         updateLog(result);
 
         if (result.success) {
             appState.isLoggedIn = true;
             appState.user = result.data;
+
             updateDashboardUI();
             fetchTransactions();
             fetchBalance();
         } else {
             handleLogoutEffect();
         }
+
     } catch (e) {
+        console.error("Session validation error:", e);
         handleLogoutEffect();
     }
 }
