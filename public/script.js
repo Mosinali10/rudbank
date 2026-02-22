@@ -301,6 +301,22 @@ function init() {
     document.getElementById('tab-login')?.addEventListener('click', () => showTab('login'));
     document.getElementById('tab-register')?.addEventListener('click', () => showTab('register'));
 
+    // Password Toggle
+    document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const wrapper = this.closest('.input-wrapper');
+            const input = wrapper.querySelector('input');
+            const isPassword = input.type === 'password';
+            
+            input.type = isPassword ? 'text' : 'password';
+            
+            // Update icon
+            const iconName = isPassword ? 'eye' : 'eye-off';
+            this.setAttribute('data-lucide', iconName);
+            if (window.lucide) lucide.createIcons();
+        });
+    });
+
     // Google Login Init
     window.onload = function () {
         if (window.google) {
