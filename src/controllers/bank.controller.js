@@ -116,6 +116,14 @@ export const getTransactions = async (req, res) => {
 
 export const getProfile = async (req, res) => {
     try {
+        console.log("=== GET PROFILE START ===");
+        console.log("req.user:", req.user);
+        
+        if (!req.user || !req.user.uid) {
+            console.error("No user in request!");
+            return res.status(401).json(new ApiResponse(401, null, "Unauthorized - no user data"));
+        }
+
         const { uid } = req.user;
         console.log("Fetching profile for uid:", uid);
 
@@ -125,6 +133,8 @@ export const getProfile = async (req, res) => {
             [uid]
         );
 
+        console.log("Query result rows:", userQuery.rows.length);
+
         if (userQuery.rows.length === 0) {
             console.log("User not found for uid:", uid);
             return res.status(404).json(new ApiResponse(404, null, "User not found"));
@@ -133,7 +143,9 @@ export const getProfile = async (req, res) => {
         console.log("Profile fetched successfully for uid:", uid);
         return res.status(200).json(new ApiResponse(200, userQuery.rows[0], "Profile retrieved successfully"));
     } catch (error) {
-        console.error("Profile fetch error:", error);
+        console.error("=== PROFILE ERROR ===");
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
