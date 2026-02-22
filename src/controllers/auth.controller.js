@@ -6,185 +6,207 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+/* ---------------- REGISTER ---------------- */
 export const registerUser = async (req, res) => {
     const { username, email, password, phone } = req.body;
 
     try {
-        // Validation
         if (!username || !email || !password || !phone) {
             return res.status(400).json(new ApiResponse(400, null, "All fields are required"));
         }
 
-        // 1. Check if username already exists
-        const userCheck = await pool.query("SELECT * FROM koduser WHERE username = $1", [username]);
+        const userCheck = await pool.query(
+            "SELECT * FROM koduser WHERE username = $1",
+            [username]
+        );
+
         if (userCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Username already exists"));
         }
 
-        // 2. Check if email already exists
-        const emailCheck = await pool.query("SELECT * FROM koduser WHERE email = $1", [email]);
+        const emailCheck = await pool.query(
+            "SELECT * FROM koduser WHERE email = $1",
+            [email]
+        );
+
         if (emailCheck.rows.length > 0) {
             return res.status(400).json(new ApiResponse(400, null, "Email already exists"));
         }
 
-        // 3. Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 4. Insert into koduser
         await pool.query(
             "INSERT INTO koduser (username, email, password, phone, role, balance) VALUES ($1, $2, $3, $4, $5, $6)",
-            [username, email, hashedPassword, phone, 'customer', 100000]
+            [username, email, hashedPassword, phone, "customer", 100000]
         );
 
-        return res.status(201).json(new ApiResponse(201, null, "User registered successfully"));
+        return res
+            .status(201)
+            .json(new ApiResponse(201, null, "User registered successfully"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
 
+/* ---------------- LOGIN ---------------- */
 export const loginUser = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Validation
         if (!username || !password) {
-            return res.status(400).json(new ApiResponse(400, null, "Username and password are required"));
+            return res
+                .status(400)
+                .json(new ApiResponse(400, null, "Username and password are required"));
         }
 
-        // 1. Find user by username
         const userQuery = await pool.query(
             "SELECT * FROM koduser WHERE username = $1",
             [username]
         );
 
         if (userQuery.rows.length === 0) {
-            return res.status(400).json(new ApiResponse(400, null, "Invalid credentials"));
+            return res
+                .status(400)
+                .json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
         const user = userQuery.rows[0];
 
-        // 2. Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json(new ApiResponse(400, null, "Invalid credentials"));
+            return res
+                .status(400)
+                .json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
-        // 3. Generate JWT
         const token = jwt.sign(
-            { uid: user.id, username: user.username, role: user.role },
+            {
+                uid: user.uid,
+                username: user.username,
+                role: user.role
+            },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
 
-        // 4. Insert into UserToken table
         const expiryDate = new Date();
         expiryDate.setHours(expiryDate.getHours() + 1);
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [token, user.id, expiryDate]
+            [token, user.uid, expiryDate]
         );
 
-        // 5. Secure token as HttpOnly cookie
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 3600000 // 1 hour
-        };
-
-        return res.status(200)
-            .cookie("token", token, options)
+        return res
+            .status(200)
+            .cookie("token", token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                maxAge: 3600000
+            })
             .json(new ApiResponse(200, { token }, "Login successful"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
 
+/* ---------------- GOOGLE LOGIN ---------------- */
 export const googleLogin = async (req, res) => {
     const { idToken } = req.body;
 
     try {
         if (!idToken) {
-            return res.status(400).json(new ApiResponse(400, null, "Google ID Token is required"));
+            return res
+                .status(400)
+                .json(new ApiResponse(400, null, "Google ID Token is required"));
         }
 
-        // Verify Google Token
         const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID
         });
 
         const payload = ticket.getPayload();
-        const { email, name, picture, sub: googleId } = payload;
+        const { email, name, picture } = payload;
 
-        // 1. Check if user exists in KodUser
-        let userResult = await pool.query("SELECT * FROM koduser WHERE email = $1", [email]);
+        let userResult = await pool.query(
+            "SELECT * FROM koduser WHERE email = $1",
+            [email]
+        );
+
         let user;
 
         if (userResult.rows.length === 0) {
-            // 2. Create new user if not exists
             const newUser = await pool.query(
                 "INSERT INTO koduser (username, email, profile_image, role, balance, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-                [name, email, picture, 'customer', 100000, 'google-oauth-user']
+                [name, email, picture, "customer", 100000, "google-oauth-user"]
             );
             user = newUser.rows[0];
         } else {
-            // Update profile image if it changed
-            await pool.query("UPDATE koduser SET profile_image = $1 WHERE email = $2", [picture, email]);
+            await pool.query(
+                "UPDATE koduser SET profile_image = $1 WHERE email = $2",
+                [picture, email]
+            );
             user = userResult.rows[0];
         }
 
-        // 3. Generate JWT
-        const tokenToken = jwt.sign(
-            { uid: user.id, username: user.username, role: user.role },
+        const token = jwt.sign(
+            {
+                uid: user.uid,
+                username: user.username,
+                role: user.role
+            },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
 
-        // 4. Store in UserToken
         const expiryDate = new Date();
         expiryDate.setHours(expiryDate.getHours() + 1);
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [tokenToken, user.id, expiryDate]
+            [token, user.uid, expiryDate]
         );
 
-        // 5. Set Cookie
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 3600000 // 1 hour
-        };
-
-        return res.status(200)
-            .cookie("token", tokenToken, options)
-            .json(new ApiResponse(200, { user, token: tokenToken }, "Google login successful"));
-
+        return res
+            .status(200)
+            .cookie("token", token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                maxAge: 3600000
+            })
+            .json(new ApiResponse(200, { user }, "Google login successful"));
     } catch (error) {
         console.error("GOOGLE LOGIN ERROR:", error);
-        return res.status(401).json(new ApiResponse(401, null, "Invalid Google Token"));
+        return res
+            .status(401)
+            .json(new ApiResponse(401, null, "Invalid Google Token"));
     }
 };
 
+/* ---------------- LOGOUT ---------------- */
 export const logoutUser = async (req, res) => {
     try {
-        const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
+        const token =
+            req.cookies?.token ||
+            req.headers.authorization?.replace("Bearer ", "");
 
         if (token) {
-            // Remove token from database
-            await pool.query("DELETE FROM usertoken WHERE token = $1", [token]);
+            await pool.query(
+                "DELETE FROM usertoken WHERE token = $1",
+                [token]
+            );
         }
 
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
-        };
-
-        return res.status(200)
-            .clearCookie("token", options)
+        return res
+            .status(200)
+            .clearCookie("token", {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none"
+            })
             .json(new ApiResponse(200, null, "Logged out successfully"));
     } catch (error) {
         return res.status(500).json(new ApiResponse(500, null, error.message));
