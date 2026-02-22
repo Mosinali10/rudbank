@@ -117,35 +117,59 @@ export const getTransactions = async (req, res) => {
 export const getProfile = async (req, res) => {
     try {
         console.log("=== GET PROFILE START ===");
-        console.log("req.user:", req.user);
+        console.log("Full request user object:", JSON.stringify(req.user));
         
-        if (!req.user || !req.user.uid) {
-            console.error("No user in request!");
-            return res.status(401).json(new ApiResponse(401, null, "Unauthorized - no user data"));
+        if (!req.user) {
+            console.error("ERROR: req.user is undefined!");
+            return res.status(401).json(new ApiResponse(401, null, "Unauthorized - no user in request"));
+        }
+
+        if (!req.user.uid) {
+            console.error("ERROR: req.user.uid is undefined! User object:", req.user);
+            return res.status(401).json(new ApiResponse(401, null, "Unauthorized - no uid in user"));
         }
 
         const { uid } = req.user;
-        console.log("Fetching profile for uid:", uid);
+        console.log("Fetching profile for uid:", uid, "type:", typeof uid);
 
-        // Try both 'id' and 'uid' column names
+        // First, let's see what columns actually exist
+        console.log("Attempting database query...");
+        
         const userQuery = await pool.query(
-            "SELECT username, email, role, balance, profile_image FROM koduser WHERE id = $1 OR uid = $1",
+            "SELECT * FROM koduser WHERE id = $1 OR uid = $1 LIMIT 1",
             [uid]
         );
 
-        console.log("Query result rows:", userQuery.rows.length);
+        console.log("Query executed. Rows returned:", userQuery.rows.length);
 
         if (userQuery.rows.length === 0) {
-            console.log("User not found for uid:", uid);
-            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+            console.log("ERROR: No user found for uid:", uid);
+            // Let's check if ANY users exist
+            const countQuery = await pool.query("SELECT COUNT(*) FROM koduser");
+            console.log("Total users in database:", countQuery.rows[0].count);
+            return res.status(404).json(new ApiResponse(404, null, "User not found in database"));
         }
 
-        console.log("Profile fetched successfully for uid:", uid);
-        return res.status(200).json(new ApiResponse(200, userQuery.rows[0], "Profile retrieved successfully"));
+        const userData = userQuery.rows[0];
+        console.log("User found! Columns:", Object.keys(userData));
+        
+        // Return only safe fields
+        const safeData = {
+            username: userData.username,
+            email: userData.email,
+            role: userData.role,
+            balance: userData.balance,
+            profile_image: userData.profile_image
+        };
+
+        console.log("Profile fetched successfully");
+        return res.status(200).json(new ApiResponse(200, safeData, "Profile retrieved successfully"));
     } catch (error) {
         console.error("=== PROFILE ERROR ===");
+        console.error("Error name:", error.name);
         console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-        return res.status(500).json(new ApiResponse(500, null, error.message));
+        console.error("Error code:", error.code);
+        console.error("Full error:", JSON.stringify(error, null, 2));
+        return res.status(500).json(new ApiResponse(500, null, `Database error: ${error.message}`));
     }
 };

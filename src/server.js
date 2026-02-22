@@ -57,6 +57,33 @@ app.get("/api/health", (req, res) => {
     res.status(200).json({ success: true, message: "RudBank API running" });
 });
 
+app.get("/api/debug", async (req, res) => {
+    try {
+        // Test database connection
+        const dbTest = await pool.query("SELECT NOW()");
+        
+        res.status(200).json({
+            success: true,
+            database: "Connected",
+            dbTime: dbTest.rows[0],
+            env: {
+                hasJwtSecret: !!process.env.JWT_SECRET,
+                hasDatabaseUrl: !!process.env.DATABASE_URL,
+                corsOrigin: process.env.CORS_ORIGIN || "not set"
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            env: {
+                hasJwtSecret: !!process.env.JWT_SECRET,
+                hasDatabaseUrl: !!process.env.DATABASE_URL
+            }
+        });
+    }
+});
+
 /* ---------------- ERROR HANDLER ---------------- */
 app.use(errorHandler);
 
