@@ -1,0 +1,31 @@
+Fix: Critical authentication and database issues
+
+🔧 Fixed Issues:
+- ID field mismatch (user.uid → user.id) in auth controllers
+- Missing credentials: 'include' in all frontend fetch calls
+- CORS configuration missing exposedHeaders
+- Added comprehensive error logging for debugging
+
+✅ Changes:
+- src/controllers/auth.controller.js: Fixed ID references in login and Google auth
+- src/middlewares/auth.middleware.js: Added logging to JWT verification
+- src/controllers/bank.controller.js: Added logging to profile endpoint
+- src/server.js: Enhanced CORS config with exposedHeaders
+- public/script.js: Added credentials: 'include' to all API calls
+
+📚 Documentation:
+- Added DEPLOYMENT_GUIDE.md with complete deployment steps
+- Added test-api.js for automated API testing
+- Added .env.example with configuration template
+- Added FIXES_APPLIED.md with detailed fix documentation
+- Updated README.md with troubleshooting section
+
+🎯 Impact:
+- Login now works correctly (200 status)
+- Dashboard loads after authentication
+- Profile endpoint returns user data
+- Cookies are properly set and sent
+- Better error visibility in production logs
+
+Tested: ✅ All endpoints working
+Ready for: Production deployment

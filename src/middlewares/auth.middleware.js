@@ -5,6 +5,8 @@ export const verifyJWT = async (req, res, next) => {
     try {
         const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
 
+        console.log("JWT Verification - Token present:", !!token);
+
         if (!token) {
             return res.status(401).json({ success: false, message: "No token provided" });
         }
@@ -16,16 +18,19 @@ export const verifyJWT = async (req, res, next) => {
         );
 
         if (tokenQuery.rows.length === 0) {
-            return res.status(401).json({ message: "Invalid or expired token" });
+            console.log("Token not found or expired in database");
+            return res.status(401).json({ success: false, message: "Invalid or expired token" });
         }
 
         // 2. Decode token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Token decoded successfully, uid:", decoded.uid);
 
         // 3. Attach user info to request
         req.user = decoded;
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Authentication failed" });
+        console.error("JWT verification error:", error.message);
+        return res.status(401).json({ success: false, message: "Authentication failed" });
     }
 };

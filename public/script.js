@@ -57,7 +57,11 @@ function showTab(type) {
 async function validateSession() {
     try {
         const res = await fetch('/api/bank/profile', {
-            credentials: 'include'   // 🔥 THIS WAS MISSING
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         // If backend says unauthorized → logout UI
@@ -88,7 +92,13 @@ async function validateSession() {
 // --- TASK 2: Fetch Balance ---
 async function fetchBalance() {
     try {
-        const res = await fetch('/api/bank/balance');
+        const res = await fetch('/api/bank/balance', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         if (res.status === 401) return handleLogoutEffect();
 
         const result = await res.json();
@@ -106,7 +116,13 @@ async function fetchBalance() {
 
 async function fetchTransactions() {
     try {
-        const res = await fetch('/api/bank/transactions');
+        const res = await fetch('/api/bank/transactions', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         const result = await res.json();
         if (result.success) {
             appState.transactions = result.data;
@@ -186,6 +202,7 @@ async function handleGoogleCallback(response) {
     try {
         const res = await fetch('/api/auth/google-login', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken })
         });
@@ -222,6 +239,7 @@ async function handleTransaction(type) {
     try {
         const res = await fetch(`/api/bank/${type}`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
@@ -261,7 +279,13 @@ async function handleTransaction(type) {
 // --- TASK 5: Logout ---
 async function performLogout() {
     try {
-        const res = await fetch('/api/auth/logout', { method: 'POST' });
+        const res = await fetch('/api/auth/logout', { 
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         const result = await res.json();
         updateLog(result);
         showToast('Securely logged out', 'info');
@@ -316,6 +340,7 @@ function init() {
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
@@ -329,6 +354,7 @@ function init() {
                 showToast(result.message || 'Wrong Credentials', 'error');
             }
         } catch (err) {
+            console.error('Login error:', err);
             showToast('Service Unavailable', 'error');
         }
     });
@@ -346,6 +372,7 @@ function init() {
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
@@ -359,6 +386,7 @@ function init() {
                 showToast(result.message || 'Verification Failed', 'error');
             }
         } catch (err) {
+            console.error('Registration error:', err);
             showToast('Network Connectivity Issue', 'error');
         }
     });

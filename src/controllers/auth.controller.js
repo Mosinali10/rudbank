@@ -53,7 +53,10 @@ export const loginUser = async (req, res) => {
     const { username, password } = req.body;
 
     try {
+        console.log("Login attempt for username:", username);
+
         if (!username || !password) {
+            console.log("Missing credentials");
             return res
                 .status(400)
                 .json(new ApiResponse(400, null, "Username and password are required"));
@@ -65,15 +68,18 @@ export const loginUser = async (req, res) => {
         );
 
         if (userQuery.rows.length === 0) {
+            console.log("User not found:", username);
             return res
                 .status(400)
                 .json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
         const user = userQuery.rows[0];
+        console.log("User found, ID:", user.id);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            console.log("Password mismatch for user:", username);
             return res
                 .status(400)
                 .json(new ApiResponse(400, null, "Invalid credentials"));
@@ -81,7 +87,7 @@ export const loginUser = async (req, res) => {
 
         const token = jwt.sign(
             {
-                uid: user.uid,
+                uid: user.id,
                 username: user.username,
                 role: user.role
             },
@@ -94,8 +100,10 @@ export const loginUser = async (req, res) => {
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [token, user.uid, expiryDate]
+            [token, user.id, expiryDate]
         );
+
+        console.log("Login successful for user:", username);
 
         return res
             .status(200)
@@ -107,6 +115,7 @@ export const loginUser = async (req, res) => {
             })
             .json(new ApiResponse(200, { token }, "Login successful"));
     } catch (error) {
+        console.error("Login error:", error);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
@@ -153,7 +162,7 @@ export const googleLogin = async (req, res) => {
 
         const token = jwt.sign(
             {
-                uid: user.uid,
+                uid: user.id,
                 username: user.username,
                 role: user.role
             },
@@ -166,7 +175,7 @@ export const googleLogin = async (req, res) => {
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [token, user.uid, expiryDate]
+            [token, user.id, expiryDate]
         );
 
         return res

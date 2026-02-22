@@ -109,6 +109,7 @@ export const getTransactions = async (req, res) => {
 export const getProfile = async (req, res) => {
     try {
         const { uid } = req.user;
+        console.log("Fetching profile for uid:", uid);
 
         const userQuery = await pool.query(
             "SELECT username, email, role, balance, profile_image FROM koduser WHERE id = $1",
@@ -116,11 +117,14 @@ export const getProfile = async (req, res) => {
         );
 
         if (userQuery.rows.length === 0) {
+            console.log("User not found for uid:", uid);
             return res.status(404).json(new ApiResponse(404, null, "User not found"));
         }
 
+        console.log("Profile fetched successfully for uid:", uid);
         return res.status(200).json(new ApiResponse(200, userQuery.rows[0], "Profile retrieved successfully"));
     } catch (error) {
+        console.error("Profile fetch error:", error);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
