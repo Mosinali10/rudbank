@@ -4,18 +4,23 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 export const getBalance = async (req, res) => {
     try {
         const { uid } = req.user;
+        console.log("Fetching balance for uid:", uid);
 
+        // Try both 'id' and 'uid' column names
         const balanceQuery = await pool.query(
-            "SELECT balance FROM koduser WHERE id = $1",
+            "SELECT balance FROM koduser WHERE id = $1 OR uid = $1",
             [uid]
         );
 
         if (balanceQuery.rows.length === 0) {
+            console.log("User not found for uid:", uid);
             return res.status(404).json(new ApiResponse(404, null, "User not found"));
         }
 
+        console.log("Balance fetched successfully");
         return res.status(200).json(new ApiResponse(200, { balance: balanceQuery.rows[0].balance }));
     } catch (error) {
+        console.error("Balance fetch error:", error);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
@@ -30,8 +35,9 @@ export const creditAmount = async (req, res) => {
             return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
+        // Try both 'id' and 'uid' column names
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance + $1 WHERE id = $2 RETURNING balance",
+            "UPDATE koduser SET balance = balance + $1 WHERE id = $2 OR uid = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -47,6 +53,7 @@ export const creditAmount = async (req, res) => {
 
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount credited successfully"));
     } catch (error) {
+        console.error("Credit error:", error);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
@@ -61,8 +68,8 @@ export const debitAmount = async (req, res) => {
             return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
-        // Check sufficient funds
-        const userQuery = await pool.query("SELECT balance FROM koduser WHERE id = $1", [uid]);
+        // Check sufficient funds - try both column names
+        const userQuery = await pool.query("SELECT balance FROM koduser WHERE id = $1 OR uid = $1", [uid]);
         if (userQuery.rows.length === 0) {
             return res.status(404).json(new ApiResponse(404, null, "User not found"));
         }
@@ -73,7 +80,7 @@ export const debitAmount = async (req, res) => {
         }
 
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance - $1 WHERE id = $2 RETURNING balance",
+            "UPDATE koduser SET balance = balance - $1 WHERE id = $2 OR uid = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -89,6 +96,7 @@ export const debitAmount = async (req, res) => {
 
         return res.status(200).json(new ApiResponse(200, { newBalance: updateResult.rows[0].balance }, "Amount debited successfully"));
     } catch (error) {
+        console.error("Debit error:", error);
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
@@ -111,8 +119,9 @@ export const getProfile = async (req, res) => {
         const { uid } = req.user;
         console.log("Fetching profile for uid:", uid);
 
+        // Try both 'id' and 'uid' column names
         const userQuery = await pool.query(
-            "SELECT username, email, role, balance, profile_image FROM koduser WHERE id = $1",
+            "SELECT username, email, role, balance, profile_image FROM koduser WHERE id = $1 OR uid = $1",
             [uid]
         );
 

@@ -75,7 +75,7 @@ export const loginUser = async (req, res) => {
         }
 
         const user = userQuery.rows[0];
-        console.log("User found, ID:", user.id);
+        console.log("User found, checking ID field:", { id: user.id, uid: user.uid });
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -85,9 +85,13 @@ export const loginUser = async (req, res) => {
                 .json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
+        // Handle both 'id' and 'uid' column names
+        const userId = user.id || user.uid;
+        console.log("Using user ID:", userId);
+
         const token = jwt.sign(
             {
-                uid: user.id,
+                uid: userId,
                 username: user.username,
                 role: user.role
             },
@@ -100,10 +104,10 @@ export const loginUser = async (req, res) => {
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [token, user.id, expiryDate]
+            [token, userId, expiryDate]
         );
 
-        console.log("Login successful for user:", username);
+        console.log("Login successful for user:", username, "with ID:", userId);
 
         return res
             .status(200)
@@ -160,9 +164,13 @@ export const googleLogin = async (req, res) => {
             user = userResult.rows[0];
         }
 
+        // Handle both 'id' and 'uid' column names
+        const userId = user.id || user.uid;
+        console.log("Google login - Using user ID:", userId);
+
         const token = jwt.sign(
             {
-                uid: user.id,
+                uid: userId,
                 username: user.username,
                 role: user.role
             },
@@ -175,7 +183,7 @@ export const googleLogin = async (req, res) => {
 
         await pool.query(
             "INSERT INTO usertoken (token, uid, expiry) VALUES ($1, $2, $3)",
-            [token, user.id, expiryDate]
+            [token, userId, expiryDate]
         );
 
         return res
