@@ -6,15 +6,21 @@
     --sidebar-bg: #050512;
     --card-bg: rgba(15, 15, 35, 0.7);
     --primary: #00d4ff;
-    /* Bright Cyan - CHANGED FOR TESTING */
     --primary-glow: rgba(0, 212, 255, 0.4);
     --secondary: #22d3ee;
-    /* Cyber Cyan */
     --text-white: #ffffff;
     --text-muted: #8b8ba7;
     --success: #00f59b;
     --danger: #ff4d88;
     --glass-border: rgba(0, 212, 255, 0.15);
+    
+    /* Light theme for auth */
+    --auth-bg: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    --auth-card-bg: rgba(255, 255, 255, 0.95);
+    --auth-text: #1e293b;
+    --auth-text-muted: #64748b;
+    --auth-input-bg: #f1f5f9;
+    --auth-border: #e2e8f0;
 }
 
 * {
@@ -41,21 +47,65 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at top right, #1a1033, #020205);
+    background: var(--auth-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-container::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.3), transparent);
+    border-radius: 50%;
+    top: -200px;
+    right: -200px;
+    animation: float 20s infinite ease-in-out;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-50px, 50px); }
 }
 
 .auth-box {
     width: 100%;
-    max-width: 450px;
-    padding: 3rem;
-    border-radius: 2rem;
+    max-width: 480px;
+    padding: 3rem 2.5rem;
+    border-radius: 2.5rem;
     text-align: center;
+    background: var(--auth-card-bg);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.5);
+    position: relative;
+    z-index: 1;
 }
 
 .logo {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    color: var(--auth-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.logo::before {
+    content: '→';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 20px;
+    font-size: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
 }
 
 .logo span {
@@ -64,10 +114,11 @@ body {
 
 .tabs {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.5rem;
+    background: var(--auth-input-bg);
+    padding: 0.4rem;
     border-radius: 1rem;
     margin-bottom: 2rem;
+    gap: 0.5rem;
 }
 
 .tab {
@@ -75,55 +126,99 @@ body {
     padding: 0.8rem;
     border: none;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--auth-text-muted);
     font-weight: 600;
     cursor: pointer;
-    border-radius: 0.7rem;
-    transition: 0.3s;
+    border-radius: 0.8rem;
+    transition: all 0.3s ease;
 }
 
 .tab.active {
-    background: var(--primary);
-    color: white;
+    background: white;
+    color: var(--auth-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .auth-form h2 {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--auth-text);
+    font-size: 1.8rem;
+}
+
+.auth-form p {
+    color: var(--auth-text-muted);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
 }
 
 input {
     width: 100%;
-    padding: 1.2rem;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--glass-border);
+    padding: 1.2rem 1.2rem 1.2rem 3rem;
+    background: var(--auth-input-bg);
+    border: 2px solid transparent;
     border-radius: 1rem;
-    color: white;
-    margin-bottom: 1.2rem;
+    color: var(--auth-text);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+input::placeholder {
+    color: var(--auth-text-muted);
 }
 
 input:focus {
     outline: none;
     border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1);
+}
+
+.input-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.input-wrapper input {
+    margin-bottom: 0;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--auth-text-muted);
+    font-size: 1.2rem;
+    pointer-events: none;
 }
 
 .btn-primary {
     width: 100%;
     padding: 1.2rem;
-    background: var(--primary);
+    background: #1e293b;
     color: white;
     border: none;
     border-radius: 1rem;
     font-weight: 600;
     cursor: pointer;
-    font-size: 1.1rem;
-    transition: 0.3s;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.btn-primary:hover {
+    background: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 .divider {
     display: flex;
     align-items: center;
     margin: 1.5rem 0;
-    color: var(--text-muted);
+    color: var(--auth-text-muted);
 }
 
 .divider::before,
@@ -131,7 +226,7 @@ input:focus {
     content: "";
     flex: 1;
     height: 1px;
-    background: var(--glass-border);
+    background: var(--auth-border);
 }
 
 .divider span {
@@ -143,12 +238,50 @@ input:focus {
 .g-btn-wrapper {
     display: flex;
     justify-content: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.btn-primary:hover {
+.social-login {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.social-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    border: 2px solid var(--auth-border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px var(--primary-glow);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary);
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.forgot-password a {
+    color: var(--auth-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+}
+
+.forgot-password a:hover {
+    color: var(--primary);
 }
 
 /* Dashboard Layout */

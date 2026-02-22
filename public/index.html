@@ -26,21 +26,48 @@
             </div>
 
             <form id="login-form" class="auth-form">
-                <h2>Welcome Back</h2>
+                <h2>Sign in with email</h2>
+                <p>Access your account securely</p>
                 <div id="google-login-btn" class="g-btn-wrapper"></div>
                 <div class="divider"><span>OR</span></div>
-                <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
-                <input type="password" id="login-password" placeholder="Password" required
-                    autocomplete="current-password">
-                <button type="submit" class="btn-primary">Secure Login</button>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <div class="forgot-password">
+                    <a href="#">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-primary">Get Started</button>
+                <div class="divider"><span>Or sign in with</span></div>
+                <div class="social-login">
+                    <div class="social-btn">📱</div>
+                    <div class="social-btn">🍎</div>
+                </div>
             </form>
 
             <form id="register-form" class="auth-form hidden">
                 <h2>Create Account</h2>
-                <input type="text" id="reg-username" placeholder="Full Name" required autocomplete="name">
-                <input type="email" id="reg-email" placeholder="Email Address" required autocomplete="email">
-                <input type="password" id="reg-password" placeholder="Password" required autocomplete="new-password">
-                <input type="text" id="reg-phone" placeholder="Phone Number" required autocomplete="tel">
+                <p>Join Kodbank today</p>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="reg-username" placeholder="Full Name" required autocomplete="name">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="reg-email" placeholder="Email Address" required autocomplete="email">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="reg-password" placeholder="Password" required autocomplete="new-password">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">📱</span>
+                    <input type="text" id="reg-phone" placeholder="Phone Number" required autocomplete="tel">
+                </div>
                 <button type="submit" class="btn-primary">Join Kodbank</button>
             </form>
         </div>
