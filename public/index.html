@@ -31,12 +31,13 @@
                 <div id="google-login-btn" class="g-btn-wrapper"></div>
                 <div class="divider"><span>OR</span></div>
                 <div class="input-wrapper">
-                    <span class="input-icon">📧</span>
+                    <i data-lucide="mail" class="input-icon"></i>
                     <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
                 </div>
                 <div class="input-wrapper">
-                    <span class="input-icon">🔒</span>
+                    <i data-lucide="lock" class="input-icon"></i>
                     <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    <i data-lucide="eye-off" class="input-icon-right toggle-password"></i>
                 </div>
                 <div class="forgot-password">
                     <a href="#">Forgot password?</a>
@@ -44,8 +45,14 @@
                 <button type="submit" class="btn-primary">Get Started</button>
                 <div class="divider"><span>Or sign in with</span></div>
                 <div class="social-login">
-                    <div class="social-btn">📱</div>
-                    <div class="social-btn">🍎</div>
+                    <button type="button" class="social-btn">
+                        <i data-lucide="facebook"></i>
+                    </button>
+                    <button type="button" class="social-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                        </svg>
+                    </button>
                 </div>
             </form>
 
@@ -53,19 +60,19 @@
                 <h2>Create Account</h2>
                 <p>Join Kodbank today</p>
                 <div class="input-wrapper">
-                    <span class="input-icon">👤</span>
+                    <i data-lucide="user" class="input-icon"></i>
                     <input type="text" id="reg-username" placeholder="Full Name" required autocomplete="name">
                 </div>
                 <div class="input-wrapper">
-                    <span class="input-icon">📧</span>
+                    <i data-lucide="mail" class="input-icon"></i>
                     <input type="email" id="reg-email" placeholder="Email Address" required autocomplete="email">
                 </div>
                 <div class="input-wrapper">
-                    <span class="input-icon">🔒</span>
+                    <i data-lucide="lock" class="input-icon"></i>
                     <input type="password" id="reg-password" placeholder="Password" required autocomplete="new-password">
                 </div>
                 <div class="input-wrapper">
-                    <span class="input-icon">📱</span>
+                    <i data-lucide="phone" class="input-icon"></i>
                     <input type="text" id="reg-phone" placeholder="Phone Number" required autocomplete="tel">
                 </div>
                 <button type="submit" class="btn-primary">Join Kodbank</button>

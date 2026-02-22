@@ -411,7 +411,11 @@ function init() {
     document.getElementById('btn-logout')?.addEventListener('click', performLogout);
 
     validateSession();
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) {
+        lucide.createIcons();
+        // Reinitialize icons after dynamic content loads
+        setTimeout(() => lucide.createIcons(), 100);
+    }
 }
 
 init();

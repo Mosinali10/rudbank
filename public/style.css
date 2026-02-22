@@ -137,9 +137,22 @@ input:focus {
     left: 1.2rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.2rem;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
     pointer-events: none;
     z-index: 1;
+}
+
+.input-icon-right {
+    left: auto;
+    right: 1.2rem;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.toggle-password:hover {
+    color: var(--primary);
 }
 
 .btn-primary {
@@ -206,13 +219,20 @@ input:focus {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+
+.social-btn svg,
+.social-btn i {
+    width: 20px;
+    height: 20px;
 }
 
 .social-btn:hover {
     transform: translateY(-3px);
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary);
+    color: var(--primary);
 }
 
 .forgot-password {
