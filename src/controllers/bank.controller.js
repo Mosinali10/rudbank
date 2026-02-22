@@ -6,9 +6,8 @@ export const getBalance = async (req, res) => {
         const { uid } = req.user;
         console.log("Fetching balance for uid:", uid);
 
-        // Try both 'id' and 'uid' column names
         const balanceQuery = await pool.query(
-            "SELECT balance FROM koduser WHERE id = $1 OR uid = $1",
+            "SELECT balance FROM koduser WHERE uid = $1",
             [uid]
         );
 
@@ -35,9 +34,8 @@ export const creditAmount = async (req, res) => {
             return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
-        // Try both 'id' and 'uid' column names
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance + $1 WHERE id = $2 OR uid = $2 RETURNING balance",
+            "UPDATE koduser SET balance = balance + $1 WHERE uid = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -68,8 +66,7 @@ export const debitAmount = async (req, res) => {
             return res.status(400).json(new ApiResponse(400, null, "Invalid or negative amount"));
         }
 
-        // Check sufficient funds - try both column names
-        const userQuery = await pool.query("SELECT balance FROM koduser WHERE id = $1 OR uid = $1", [uid]);
+        const userQuery = await pool.query("SELECT balance FROM koduser WHERE uid = $1", [uid]);
         if (userQuery.rows.length === 0) {
             return res.status(404).json(new ApiResponse(404, null, "User not found"));
         }
@@ -80,7 +77,7 @@ export const debitAmount = async (req, res) => {
         }
 
         const updateResult = await pool.query(
-            "UPDATE koduser SET balance = balance - $1 WHERE id = $2 OR uid = $2 RETURNING balance",
+            "UPDATE koduser SET balance = balance - $1 WHERE uid = $2 RETURNING balance",
             [parseFloat(amount), uid]
         );
 
@@ -136,7 +133,7 @@ export const getProfile = async (req, res) => {
         console.log("Attempting database query...");
         
         const userQuery = await pool.query(
-            "SELECT * FROM koduser WHERE id = $1 OR uid = $1 LIMIT 1",
+            "SELECT * FROM koduser WHERE uid = $1 LIMIT 1",
             [uid]
         );
 

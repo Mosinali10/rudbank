@@ -75,7 +75,7 @@ export const loginUser = async (req, res) => {
         }
 
         const user = userQuery.rows[0];
-        console.log("User found, checking ID field:", { id: user.id, uid: user.uid });
+        console.log("User found, uid:", user.uid);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -85,8 +85,7 @@ export const loginUser = async (req, res) => {
                 .json(new ApiResponse(400, null, "Invalid credentials"));
         }
 
-        // Handle both 'id' and 'uid' column names
-        const userId = user.id || user.uid;
+        const userId = user.uid;
         console.log("Using user ID:", userId);
 
         const token = jwt.sign(
@@ -164,8 +163,7 @@ export const googleLogin = async (req, res) => {
             user = userResult.rows[0];
         }
 
-        // Handle both 'id' and 'uid' column names
-        const userId = user.id || user.uid;
+        const userId = user.uid;
         console.log("Google login - Using user ID:", userId);
 
         const token = jwt.sign(
