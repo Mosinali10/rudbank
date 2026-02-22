@@ -5,16 +5,16 @@
     --bg-dark: #08081a;
     --sidebar-bg: #050512;
     --card-bg: rgba(15, 15, 35, 0.7);
-    --primary: #c084fc;
-    /* Amethyst Purple */
-    --primary-glow: rgba(192, 132, 252, 0.4);
+    --primary: #00d4ff;
+    /* Bright Cyan - CHANGED FOR TESTING */
+    --primary-glow: rgba(0, 212, 255, 0.4);
     --secondary: #22d3ee;
     /* Cyber Cyan */
     --text-white: #ffffff;
     --text-muted: #8b8ba7;
     --success: #00f59b;
     --danger: #ff4d88;
-    --glass-border: rgba(192, 132, 252, 0.15);
+    --glass-border: rgba(0, 212, 255, 0.15);
 }
 
 * {
