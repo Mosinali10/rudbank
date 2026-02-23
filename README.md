@@ -1,15 +1,92 @@
-# RudBank Backend 🏦
+# RudBank - Modern Banking Dashboard 🏦
 
-RudBank is a secure, production-grade banking API built with Node.js, Express, and PostgreSQL. It features robust authentication, real-time balance management, and secure transaction processing.
+RudBank is a full-stack banking application with a secure backend API and a modern Single Page Application (SPA) frontend. Built with Node.js, Express, PostgreSQL, and vanilla JavaScript.
+
+## 🌟 Live Demo
+
+**Production URL:** [https://rudbank.vercel.app](https://rudbank.vercel.app)
+
+## ✨ Features
+
+### Frontend (SPA)
+- ✅ **Dashboard**: Real-time balance, transactions, stats, and analytics
+- ✅ **Analytics**: Spending breakdown, financial insights, and trends  
+- ✅ **Cards**: Virtual and physical card management
+- ✅ **Assets**: Investment portfolio and holdings tracking
+- ✅ **Profile**: Account settings and security options
+- ✅ **Hash-based Routing**: Smooth navigation without page reloads
+- ✅ **Responsive Design**: Mobile, tablet, and desktop optimized
+- ✅ **Modern UI**: Glass morphism, smooth animations, dark theme
+
+### Backend API
+- ✅ **JWT Authentication**: Secure HttpOnly cookie-based auth
+- ✅ **Transaction Management**: Credit/debit operations
+- ✅ **Balance Tracking**: Real-time balance updates
+- ✅ **Transaction History**: Complete audit trail
+- ✅ **Security**: Bcrypt hashing, CORS protection, input validation
 
 ## 🚀 Tech Stack
 
+### Frontend
+*   **HTML5/CSS3**: Modern, responsive UI
+*   **Vanilla JavaScript (ES6+)**: No framework dependencies
+*   **Hash-based Router**: SPA navigation system
+*   **Lucide Icons**: Beautiful icon library
+*   **Glass Morphism**: Modern design aesthetic
+
+### Backend
 *   **Runtime**: Node.js
 *   **Framework**: Express.js
-*   **Database**: PostgreSQL
-*   **Authentication**: JWT (JSON Web Tokens) with HttpOnly Cookies
-*   **Security**: Bcrypt (Hashing), Manual Security Headers (HSTS, CSP, Frame Options)
-*   **Logging/Development**: Nodemon
+*   **Database**: PostgreSQL (Neon cloud)
+*   **Authentication**: JWT with HttpOnly Cookies
+*   **Security**: Bcrypt, CORS, CSP headers
+
+### Deployment
+*   **Vercel**: Serverless deployment
+*   **GitHub**: Version control
+*   **Neon**: Cloud PostgreSQL database
+
+## 📁 Project Structure
+
+```
+rudbank/
+├── public/                      # Frontend (SPA)
+│   ├── index.html              # Main HTML shell
+│   ├── script.js               # App initialization
+│   ├── style.css               # Global styles
+│   ├── js/
+│   │   ├── router.js           # SPA routing system
+│   │   └── api.js              # API service layer
+│   ├── components/
+│   │   ├── dashboard.js        # Dashboard view
+│   │   ├── analytics.js        # Analytics view
+│   │   ├── cards.js            # Cards view
+│   │   ├── assets.js           # Assets view
+│   │   └── profile.js          # Profile view
+│   └── styles/
+│       └── components.css      # Component styles
+│
+├── src/                        # Backend API
+│   ├── config/
+│   │   └── db.js              # Database configuration
+│   ├── controllers/
+│   │   ├── auth.controller.js # Authentication logic
+│   │   └── bank.controller.js # Banking operations
+│   ├── middlewares/
+│   │   ├── auth.middleware.js # JWT verification
+│   │   └── error.middleware.js# Error handling
+│   ├── routes/
+│   │   ├── auth.routes.js     # Auth endpoints
+│   │   └── bank.routes.js     # Bank endpoints
+│   └── server.js              # Express server
+│
+├── ARCHITECTURE.md             # Complete architecture guide
+├── IMPLEMENTATION_SUMMARY.md   # Implementation overview
+├── TESTING_GUIDE.md           # Testing instructions
+├── QUICK_REFERENCE.md         # Developer quick reference
+├── NAVIGATION_FLOW.md         # Flow diagrams
+└── package.json               # Dependencies
+```
 
 ## 🛠️ Setup Instructions
 
@@ -168,6 +245,91 @@ All responses follow a standardized format:
 
 For detailed debugging steps, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 
+## 📚 Documentation
+
+### For Developers
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Complete architecture guide
+  - SPA routing system
+  - Component structure  
+  - Best practices
+  - Adding new features
+
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)**: Developer quick reference
+  - Common commands
+  - API calls
+  - CSS classes
+  - Utility functions
+
+- **[NAVIGATION_FLOW.md](NAVIGATION_FLOW.md)**: Visual flow diagrams
+  - Navigation flow
+  - Data flow
+  - Authentication flow
+  - Component lifecycle
+
+### For Testing
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)**: Comprehensive testing guide
+  - Manual testing checklist
+  - Browser console testing
+  - Network tab verification
+  - Troubleshooting
+
+### For Overview
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)**: Feature summary
+  - What was implemented
+  - How it works
+  - Key benefits
+
+### Additional Resources
+- [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Complete deployment and debugging guide
+- [API Testing](./test-api.js) - Automated API testing script
+
 ## 📚 Additional Resources
 - [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Complete deployment and debugging guide
 - [API Testing](./test-api.js) - Automated API testing script
+
+
+## 🎯 Quick Start
+
+1. **Clone and install**
+   ```bash
+   git clone https://github.com/Mosinali10/rudbank.git
+   cd rudbank
+   npm install
+   ```
+
+2. **Configure environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database and JWT secret
+   ```
+
+3. **Start development**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open browser**
+   ```
+   http://localhost:3000
+   ```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 👨‍💻 Author
+
+**Mosin Ali**
+- GitHub: [@Mosinali10](https://github.com/Mosinali10)
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+---
+
+**Built with ❤️ for modern banking experiences**
