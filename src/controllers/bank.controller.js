@@ -170,3 +170,67 @@ export const getProfile = async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, `Database error: ${error.message}`));
     }
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { uid } = req.user;
+        const { username, phone, profile_image } = req.body;
+
+        // Validation
+        if (!username || username.trim().length < 3) {
+            return res.status(400).json(new ApiResponse(400, null, "Username must be at least 3 characters"));
+        }
+
+        // Check if username is already taken by another user
+        const existingUser = await pool.query(
+            "SELECT uid FROM koduser WHERE username = $1 AND uid != $2",
+            [username, uid]
+        );
+
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json(new ApiResponse(400, null, "Username already taken"));
+        }
+
+        // Build update query dynamically
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (username) {
+            updates.push(`username = $${paramCount++}`);
+            values.push(username.trim());
+        }
+
+        if (phone !== undefined) {
+            updates.push(`phone = $${paramCount++}`);
+            values.push(phone || null);
+        }
+
+        if (profile_image !== undefined) {
+            updates.push(`profile_image = $${paramCount++}`);
+            values.push(profile_image || null);
+        }
+
+        values.push(uid);
+
+        const updateQuery = `
+            UPDATE koduser 
+            SET ${updates.join(', ')} 
+            WHERE uid = $${paramCount}
+            RETURNING username, email, phone, profile_image, role, balance
+        `;
+
+        const result = await pool.query(updateQuery, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        }
+
+        return res.status(200).json(
+            new ApiResponse(200, result.rows[0], "Profile updated successfully")
+        );
+    } catch (error) {
+        console.error("Update profile error:", error);
+        return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};

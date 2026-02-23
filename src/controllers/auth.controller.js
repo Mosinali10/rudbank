@@ -227,3 +227,73 @@ export const logoutUser = async (req, res) => {
         return res.status(500).json(new ApiResponse(500, null, error.message));
     }
 };
+
+/* ---------------- CHANGE PASSWORD ---------------- */
+export const changePassword = async (req, res) => {
+    try {
+        const { uid } = req.user;
+        const { currentPassword, newPassword } = req.body;
+
+        // Validation
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json(
+                new ApiResponse(400, null, "Current password and new password are required")
+            );
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json(
+                new ApiResponse(400, null, "New password must be at least 6 characters")
+            );
+        }
+
+        // Get user's current password
+        const userQuery = await pool.query(
+            "SELECT password FROM koduser WHERE uid = $1",
+            [uid]
+        );
+
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        }
+
+        const user = userQuery.rows[0];
+
+        // Check if user signed up with Google (no password)
+        if (user.password === "google-oauth-user") {
+            return res.status(400).json(
+                new ApiResponse(400, null, "Cannot change password for Google OAuth accounts")
+            );
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json(
+                new ApiResponse(400, null, "Current password is incorrect")
+            );
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await pool.query(
+            "UPDATE koduser SET password = $1 WHERE uid = $2",
+            [hashedPassword, uid]
+        );
+
+        // Invalidate all existing tokens for this user
+        await pool.query(
+            "DELETE FROM usertoken WHERE uid = $1",
+            [uid]
+        );
+
+        return res.status(200).json(
+            new ApiResponse(200, null, "Password changed successfully. Please login again.")
+        );
+    } catch (error) {
+        console.error("Change password error:", error);
+        return res.status(500).json(new ApiResponse(500, null, error.message));
+    }
+};

@@ -50,7 +50,12 @@ const API = {
         
         logout: () => API.request('/auth/logout', { method: 'POST' }),
         
-        getProfile: () => API.request('/bank/profile')
+        getProfile: () => API.request('/bank/profile'),
+        
+        changePassword: (passwords) => API.request('/auth/change-password', {
+            method: 'PUT',
+            body: JSON.stringify(passwords)
+        })
     },
 
     // Bank endpoints
@@ -67,6 +72,11 @@ const API = {
         debit: (amount) => API.request('/bank/debit', {
             method: 'POST',
             body: JSON.stringify({ amount })
+        }),
+        
+        updateProfile: (profileData) => API.request('/bank/update-profile', {
+            method: 'PUT',
+            body: JSON.stringify(profileData)
         })
     }
 };
