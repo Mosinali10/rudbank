@@ -9,6 +9,9 @@ const appState = {
     transactions: []
 };
 
+// Google Client ID
+const GOOGLE_CLIENT_ID = "602322479541-0it27p79h5i6j606a5k881v2d81577k8.apps.googleusercontent.com";
+
 // UI Elements
 const authSection = document.getElementById('auth-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -56,10 +59,11 @@ async function validateSession() {
             updateDashboardUI();
             initializeRouter();
         } else {
+            // Silently handle - user not logged in
             handleLogoutEffect();
         }
     } catch (e) {
-        console.error("Session validation error:", e);
+        // Silently handle - user not logged in
         handleLogoutEffect();
     }
 }
@@ -179,6 +183,31 @@ async function performLogout() {
     }
 }
 
+// --- Google Auth Callback ---
+async function handleGoogleCallback(response) {
+    const idToken = response.credential;
+
+    try {
+        const res = await fetch('/api/auth/google-login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(`Welcome back, ${result.data.user.username}`, 'success');
+            validateSession();
+        } else {
+            showToast(result.message || 'Google Auth Failed', 'error');
+        }
+    } catch (err) {
+        showToast('Google Login Service Error', 'error');
+    }
+}
+
 // --- Event Listeners ---
 function init() {
     // Tabs
@@ -198,6 +227,25 @@ function init() {
             this.setAttribute('data-lucide', iconName);
             if (window.lucide) lucide.createIcons();
         });
+    });
+
+    // Google Login Init
+    window.onload = function () {
+        if (window.google) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCallback
+            });
+        }
+    };
+
+    // Google button click handler
+    document.getElementById('google-login-trigger')?.addEventListener('click', () => {
+        if (window.google) {
+            google.accounts.id.prompt();
+        } else {
+            showToast('Google Sign-In not loaded', 'error');
+        }
     });
 
     // Profile Dropdown Toggle

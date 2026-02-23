@@ -24,14 +24,17 @@ const API = {
             const data = await response.json();
 
             if (response.status === 401) {
-                // Session expired - redirect to login
+                // Session expired - redirect to login (don't log error)
                 window.dispatchEvent(new CustomEvent('auth:logout'));
                 throw new Error('Session expired');
             }
 
             return { success: response.ok, data, status: response.status };
         } catch (error) {
-            console.error('API Error:', error);
+            // Only log non-401 errors
+            if (error.message !== 'Session expired') {
+                console.error('API Error:', error);
+            }
             return { success: false, error: error.message };
         }
     },
