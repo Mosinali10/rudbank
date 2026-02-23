@@ -1,20 +1,20 @@
+/**
+ * Main Application Script
+ * Handles auth, routing, and global functionality
+ */
+
 const appState = {
     isLoggedIn: false,
     user: null,
     transactions: []
 };
 
-// --- Google Client ID ---
-// NOTE: Replace this with your actual Google Client ID from Google Cloud Console
+// Google Client ID
 const GOOGLE_CLIENT_ID = "602322479541-0it27p79h5i6j606a5k881v2d81577k8.apps.googleusercontent.com";
 
 // UI Elements
-const jsonOutput = document.getElementById('json-output');
 const authSection = document.getElementById('auth-section');
 const dashboardSection = document.getElementById('dashboard-section');
-const authStatus = document.getElementById('auth-status');
-const transactionList = document.getElementById('transaction-list');
-const displayBalance = document.getElementById('display-balance');
 
 // --- Helper: Format Currency ---
 const formatCurrency = (val) => {
@@ -24,13 +24,6 @@ const formatCurrency = (val) => {
         maximumFractionDigits: 2
     }).format(val || 0);
 };
-
-// --- Helper: Update Debug Log ---
-function updateLog(data) {
-    if (jsonOutput) {
-        jsonOutput.textContent = JSON.stringify(data, null, 2);
-    }
-}
 
 // --- Helper: Show Toast ---
 function showToast(message, type = 'info') {
@@ -53,125 +46,49 @@ function showTab(type) {
     document.getElementById('tab-register').classList.toggle('active', type === 'register');
 }
 
-// --- TASK 1 & 6: Validate Session & Protect Dashboard ---
+// --- Validate Session & Initialize App ---
 async function validateSession() {
     try {
-        const res = await fetch('/api/bank/profile', {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const res = await API.auth.getProfile();
 
-        // If backend says unauthorized → logout UI
-        if (res.status === 401) {
-            return handleLogoutEffect();
-        }
-
-        const result = await res.json();
-        updateLog(result);
-
-        if (result.success) {
+        if (res.success && res.data.data) {
             appState.isLoggedIn = true;
-            appState.user = result.data;
-
+            appState.user = res.data.data;
+            
+            // Show dashboard and initialize router
             updateDashboardUI();
-            fetchTransactions();
-            fetchBalance();
+            initializeRouter();
         } else {
             handleLogoutEffect();
         }
-
     } catch (e) {
         console.error("Session validation error:", e);
         handleLogoutEffect();
     }
 }
 
-// --- TASK 2: Fetch Balance ---
-async function fetchBalance() {
-    try {
-        const res = await fetch('/api/bank/balance', {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (res.status === 401) return handleLogoutEffect();
-
-        const result = await res.json();
-        updateLog(result);
-
-        if (result.success) {
-            const balance = result.data.balance;
-            displayBalance.textContent = formatCurrency(balance);
-            if (appState.user) appState.user.balance = balance;
-        }
-    } catch (e) {
-        console.error("Balance Fetch Error:", e);
-    }
+// --- Initialize Router ---
+function initializeRouter() {
+    // Register all routes
+    router.register('dashboard', renderDashboard);
+    router.register('analytics', renderAnalytics);
+    router.register('cards', renderCards);
+    router.register('assets', renderAssets);
+    router.register('profile', renderProfile);
+    
+    // Set content container
+    router.setContainer('#app-content');
+    
+    // Trigger initial route
+    router.handleRouteChange();
 }
 
-async function fetchTransactions() {
-    try {
-        const res = await fetch('/api/bank/transactions', {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const result = await res.json();
-        if (result.success) {
-            appState.transactions = result.data;
-            renderTransactionsList();
-        }
-    } catch (e) {
-        console.error("TX Fetch Error:", e);
-    }
-}
-
-function renderTransactionsList() {
-    if (!transactionList) return;
-    if (appState.transactions.length === 0) {
-        transactionList.innerHTML = '<div class="empty-state">No transactions recorded yet.</div>';
-        return;
-    }
-
-    transactionList.innerHTML = appState.transactions.map(tx => {
-        const isCredit = tx.type === 'credit';
-        const date = new Date(tx.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-        return `
-            <div class="transaction-item">
-                <div class="tx-icon">
-                    <i data-lucide="${isCredit ? 'arrow-down-left' : 'arrow-up-right'}" style="color: ${isCredit ? '#00f59b' : '#ff4d88'}"></i>
-                </div>
-                <div class="tx-info">
-                    <div class="tx-title">${tx.description || (isCredit ? 'Account Credit' : 'Account Debit')}</div>
-                    <div class="tx-date">${date} • ${tx.category || 'Banking'}</div>
-                </div>
-                <div class="tx-amount ${isCredit ? 'amount-up' : 'amount-down'}">
-                    ${isCredit ? '+' : '-'}₹${parseFloat(tx.amount).toLocaleString('en-IN')}
-                    <span class="tx-status">${tx.status || 'completed'}</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-    if (window.lucide) lucide.createIcons();
-}
-
-// --- TASK 4 & 5: Dashboard Header Upgrade ---
+// --- Update Dashboard UI ---
 function updateDashboardUI() {
     authSection.classList.add('hidden');
     dashboardSection.classList.remove('hidden');
-    authStatus.textContent = 'Active Session';
-    authStatus.style.color = '#00f59b';
 
-    document.getElementById('display-welcome').textContent = `Welcome back, ${appState.user.username}`;
-
-    // Header Profile Image & Name
+    // Update header profile
     const headerImg = document.getElementById('header-user-img');
     const headerName = document.getElementById('header-user-name');
 
@@ -186,42 +103,25 @@ function updateDashboardUI() {
     }
 }
 
+// --- Handle Logout ---
 function handleLogoutEffect() {
     appState.isLoggedIn = false;
     appState.user = null;
     authSection.classList.remove('hidden');
     dashboardSection.classList.add('hidden');
-    authStatus.textContent = 'Status: Guest';
-    authStatus.style.color = '#8b8ba7';
 }
 
-// --- Google Auth: Callback ---
-async function handleGoogleCallback(response) {
-    const idToken = response.credential;
-
-    try {
-        const res = await fetch('/api/auth/google-login', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken })
-        });
-
-        const result = await res.json();
-        updateLog(result);
-
-        if (result.success) {
-            showToast(`Welcome back, ${result.data.user.username}`, 'success');
-            validateSession();
-        } else {
-            showToast(result.message || 'Google Auth Failed', 'error');
-        }
-    } catch (err) {
-        showToast('Google Login Service Error', 'error');
-    }
+// --- Transaction Modal ---
+function openTransactionModal() {
+    document.getElementById('transaction-modal').classList.remove('hidden');
+    document.getElementById('transaction-amount').focus();
 }
 
-// --- TASK 3 & 4: Transactions (Credit / Debit) ---
+function closeTransactionModal() {
+    document.getElementById('transaction-modal').classList.add('hidden');
+}
+
+// --- Handle Transaction (Credit/Debit) ---
 async function handleTransaction(type) {
     const amountInput = document.getElementById('transaction-amount');
     const amount = amountInput.value;
@@ -237,19 +137,12 @@ async function handleTransaction(type) {
     btn.textContent = '...';
 
     try {
-        const res = await fetch(`/api/bank/${type}`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: parseFloat(amount) })
-        });
-
-        const result = await res.json();
-        updateLog(result);
+        const res = await API.bank[type](parseFloat(amount));
+        
         btn.disabled = false;
         btn.textContent = originalText;
 
-        if (result.success) {
+        if (res.success) {
             showToast(`${type === 'credit' ? 'Money Added' : 'Money Sent'} Successfully!`, 'success');
 
             if (type === 'credit' && typeof confetti === 'function') {
@@ -262,12 +155,14 @@ async function handleTransaction(type) {
             }
 
             amountInput.value = '';
-            document.getElementById('transaction-modal').classList.add('hidden');
+            closeTransactionModal();
 
-            fetchBalance();
-            fetchTransactions();
+            // Refresh current view if on dashboard
+            if (router.getCurrentRoute() === 'dashboard') {
+                router.handleRouteChange();
+            }
         } else {
-            showToast(result.message || 'Transaction Failed', 'error');
+            showToast(res.data.message || 'Transaction Failed', 'error');
         }
     } catch (e) {
         showToast('Network Error. Try again.', 'error');
@@ -276,22 +171,39 @@ async function handleTransaction(type) {
     }
 }
 
-// --- TASK 5: Logout ---
+// --- Logout ---
 async function performLogout() {
     try {
-        const res = await fetch('/api/auth/logout', { 
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const result = await res.json();
-        updateLog(result);
+        await API.auth.logout();
         showToast('Securely logged out', 'info');
         handleLogoutEffect();
     } catch (e) {
         handleLogoutEffect();
+    }
+}
+
+// --- Google Auth Callback ---
+async function handleGoogleCallback(response) {
+    const idToken = response.credential;
+
+    try {
+        const res = await fetch('/api/auth/google-login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(`Welcome back, ${result.data.user.username}`, 'success');
+            validateSession();
+        } else {
+            showToast(result.message || 'Google Auth Failed', 'error');
+        }
+    } catch (err) {
+        showToast('Google Login Service Error', 'error');
     }
 }
 
@@ -310,7 +222,6 @@ function init() {
             
             input.type = isPassword ? 'text' : 'password';
             
-            // Update icon
             const iconName = isPassword ? 'eye' : 'eye-off';
             this.setAttribute('data-lucide', iconName);
             if (window.lucide) lucide.createIcons();
@@ -324,10 +235,6 @@ function init() {
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleGoogleCallback
             });
-            google.accounts.id.renderButton(
-                document.getElementById("google-login-btn"),
-                { theme: "outline", size: "large", width: "100%", text: "continue_with" }
-            );
         }
     };
 
@@ -344,8 +251,9 @@ function init() {
         profileDropdown?.classList.add('hidden');
     });
 
-    // Logout from Dropdown
+    // Logout buttons
     document.getElementById('btn-logout-dropdown')?.addEventListener('click', performLogout);
+    document.getElementById('btn-logout')?.addEventListener('click', performLogout);
 
     // Auth Forms
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
@@ -354,20 +262,13 @@ function init() {
         const password = document.getElementById('login-password').value;
 
         try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const result = await res.json();
-            updateLog(result);
+            const res = await API.auth.login({ username, password });
 
-            if (result.success) {
+            if (res.success) {
                 showToast('Welcome to Kodbank', 'success');
                 validateSession();
             } else {
-                showToast(result.message || 'Wrong Credentials', 'error');
+                showToast(res.data.message || 'Wrong Credentials', 'error');
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -375,7 +276,6 @@ function init() {
         }
     });
 
-    // ... (rest of registration and stats buttons left as is) ...
     document.getElementById('register-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
@@ -386,20 +286,13 @@ function init() {
         };
 
         try {
-            const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            updateLog(result);
+            const res = await API.auth.register(data);
 
-            if (result.success) {
+            if (res.success) {
                 showToast('Identity Verified! Please Login.', 'success');
                 showTab('login');
             } else {
-                showToast(result.message || 'Verification Failed', 'error');
+                showToast(res.data.message || 'Verification Failed', 'error');
             }
         } catch (err) {
             console.error('Registration error:', err);
@@ -407,31 +300,23 @@ function init() {
         }
     });
 
-    document.getElementById('btn-check-balance')?.addEventListener('click', () => {
-        showToast('Updating balance...', 'info');
-        fetchBalance();
-    });
-
-    document.getElementById('btn-open-transaction')?.addEventListener('click', () => {
-        document.getElementById('transaction-modal').classList.remove('hidden');
-        document.getElementById('transaction-amount').focus();
-    });
-
-    document.getElementById('btn-close-modal')?.addEventListener('click', () => {
-        document.getElementById('transaction-modal').classList.add('hidden');
-    });
-
+    // Transaction Modal
+    document.getElementById('btn-close-modal')?.addEventListener('click', closeTransactionModal);
     document.getElementById('btn-credit')?.addEventListener('click', () => handleTransaction('credit'));
     document.getElementById('btn-debit')?.addEventListener('click', () => handleTransaction('debit'));
 
-    document.getElementById('btn-logout')?.addEventListener('click', performLogout);
+    // Listen for auth logout event
+    window.addEventListener('auth:logout', handleLogoutEffect);
 
+    // Initialize app
     validateSession();
+    
+    // Initialize Lucide icons
     if (window.lucide) {
         lucide.createIcons();
-        // Reinitialize icons after dynamic content loads
         setTimeout(() => lucide.createIcons(), 100);
     }
 }
 
+// Start the app
 init();

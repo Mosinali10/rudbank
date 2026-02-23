@@ -7,6 +7,7 @@
     <title>Kodbank | Premium Wealth Management</title>
     <!-- CSS with cache buster -->
     <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="styles/components.css">
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Icons -->
@@ -103,11 +104,11 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-                <a href="#"><i data-lucide="bar-chart-2"></i> Analytics</a>
-                <a href="#"><i data-lucide="credit-card"></i> Cards</a>
-                <a href="#"><i data-lucide="wallet"></i> Assets</a>
-                <a href="#"><i data-lucide="user"></i> Profile</a>
+                <a href="#dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="#analytics"><i data-lucide="bar-chart-2"></i> Analytics</a>
+                <a href="#cards"><i data-lucide="credit-card"></i> Cards</a>
+                <a href="#assets"><i data-lucide="wallet"></i> Assets</a>
+                <a href="#profile"><i data-lucide="user"></i> Profile</a>
             </nav>
             <div class="sidebar-footer">
                 <button id="btn-logout" class="logout-link"><i data-lucide="log-out"></i> Logout</button>
@@ -115,103 +116,9 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="welcome-msg">
-                    <h1 id="display-welcome">Welcome back</h1>
-                    <p>Here's what's happening with your finance today.</p>
-                </div>
-                <div class="top-actions">
-                    <button id="btn-check-balance" class="btn-secondary">Check Balance</button>
-                    <button id="btn-open-transaction" class="btn-cta">Send Money</button>
-                    <div id="auth-status" class="status-badge">Authenticating...</div>
-                </div>
-            </header>
-
-            <!-- Stats Grid -->
-            <section class="stats-grid">
-                <div class="stat-card glass hover-lift">
-                    <div class="stat-header">
-                        <i data-lucide="dollar-sign" class="icon-orange"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> Active</span>
-                    </div>
-                    <p class="stat-label">Total Balance</p>
-                    <h2 id="display-balance" class="stat-value">₹0.00</h2>
-                </div>
-                <div class="stat-card glass hover-lift">
-                    <div class="stat-header">
-                        <i data-lucide="trending-up" class="icon-red"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 0%</span>
-                    </div>
-                    <p class="stat-label">Monthly Income</p>
-                    <h2 id="display-income" class="stat-value">₹0.00</h2>
-                </div>
-                <div class="stat-card glass hover-lift">
-                    <div class="stat-header">
-                        <i data-lucide="activity" class="icon-blue"></i>
-                        <span class="trend-down"><i data-lucide="arrow-down-right"></i> 0%</span>
-                    </div>
-                    <p class="stat-label">Monthly Expenses</p>
-                    <h2 id="display-expenses" class="stat-value">₹0.00</h2>
-                </div>
-                <div class="stat-card glass hover-lift">
-                    <div class="stat-header">
-                        <i data-lucide="briefcase" class="icon-gold"></i>
-                        <span class="trend-up"><i data-lucide="arrow-up-right"></i> 0%</span>
-                    </div>
-                    <p class="stat-label">Total Savings</p>
-                    <h2 id="display-savings" class="stat-value">₹0.00</h2>
-                </div>
-            </section>
-
-            <!-- Middle Section -->
-            <div class="content-grid">
-                <!-- Chart Area -->
-                <div class="chart-section glass">
-                    <div class="section-header">
-                        <h3>Spending Analytics</h3>
-                        <select class="time-filter">
-                            <option>Last 7 Days</option>
-                            <option>Last Month</option>
-                        </select>
-                    </div>
-                    <div class="mock-chart">
-                        <div class="chart-gradient"></div>
-                        <svg class="chart-svg" viewBox="0 0 100 40">
-                            <path d="M0,35 Q10,15 20,25 T40,15 T60,25 T80,10 T100,5" fill="none"
-                                stroke="url(#chartGradient)" stroke-width="2" />
-                            <defs>
-                                <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" style="stop-color: #c084fc; stop-opacity: 1" />
-                                    <stop offset="100%" style="stop-color: #c084fc; stop-opacity: 0.2" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <div class="chart-labels">
-                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- History Area -->
-                <div class="history-section glass">
-                    <div class="section-header">
-                        <h3>Recent Transactions</h3>
-                        <a href="#" class="view-all">View All</a>
-                    </div>
-                    <div id="transaction-list" class="transaction-list">
-                        <div class="empty-state">No transactions recently.</div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="dashboard-footer">
-                <div id="health-status">Health: Checking...</div>
-                <div class="response-viewer glass">
-                    <h3>Latest API Response</h3>
-                    <pre id="json-output">{}</pre>
-                </div>
-            </footer>
+        <main class="main-content" id="app-content">
+            <!-- Content will be dynamically loaded here by router -->
+            <div class="loading-spinner">Loading...</div>
         </main>
     </div>
 
@@ -232,8 +139,19 @@
         </div>
     </div>
 
-    <!-- JS with cache buster -->
-    <script src="script.js?v=5"></script>
+    <!-- Core JS -->
+    <script src="js/api.js"></script>
+    <script src="js/router.js"></script>
+    
+    <!-- Components -->
+    <script src="components/dashboard.js"></script>
+    <script src="components/analytics.js"></script>
+    <script src="components/cards.js"></script>
+    <script src="components/assets.js"></script>
+    <script src="components/profile.js"></script>
+    
+    <!-- Main App -->
+    <script src="script.js?v=6"></script>
     <script>lucide.createIcons();</script>
 </body>
 
